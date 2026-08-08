@@ -2,193 +2,104 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+type Difficulty = "easy" | "medium" | "hard";
 type Section = "home" | "lessons" | "quizzes" | "games" | "rewards" | "progress";
-type Student = { name: string; grade: number; avatar: number };
-type Progress = { completed: string[]; stars: number; badges: string[]; streak: number };
+type Student = { name: string; grade: number; difficulty: Difficulty; avatar: number };
+type Progress = { completed: string[]; stars: number; badges: number[]; streak: number };
+type Question = { prompt: string; options: string[]; answer: number; explanation: string };
 
-const NAV: { id: Exclude<Section, "home">; label: string; icon: string }[] = [
-  { id: "lessons", label: "Lessons", icon: "/assets/lessons.jpg" },
-  { id: "quizzes", label: "Quizzes", icon: "/assets/quiz.jpg" },
-  { id: "games", label: "Games", icon: "/assets/games.jpg" },
-  { id: "rewards", label: "Rewards", icon: "/assets/rewards.jpg" },
-  { id: "progress", label: "Progress", icon: "/assets/progress.jpg" },
+const MASCOTS = ["dolphin", "turtle", "crab", "starfish", "coconut"];
+const NAV: { id: Exclude<Section,"home">; label: string; mascot: string }[] = [
+  { id:"lessons",label:"Lessons",mascot:"dolphin" },{ id:"quizzes",label:"Quizzes",mascot:"starfish" },{ id:"games",label:"Games",mascot:"crab" },{ id:"rewards",label:"Rewards",mascot:"coconut" },{ id:"progress",label:"Progress",mascot:"turtle" },
 ];
+const BADGES = ["Starfish Scholar","Dolphin Reader","Reef Explorer","Coconut Hero","Lagoon Champion","Coral Writer","Turtle Thinker","Palm Protector","Crab Collector","Seashell Genius","Wave Rider","Sunbeam Achiever","Reef Guardian","Ocean Adventurer","Island Innovator","Sandcastle Builder","Pearl Finder","Atoll Artist","Sea Breeze Master","OceanLearn Legend"];
 
-const THEMES: Record<number, { title: string; subtitle: string; lessons: string[] }> = {
-  1: { title: "Words Around Me", subtitle: "Listen, look and build your first sentences.", lessons: ["My Classroom", "My Family", "Animals Around Us", "Colours & Shapes"] },
-  2: { title: "Stories We Love", subtitle: "Read short paragraphs and tell events in order.", lessons: ["Describing People", "Story Sequencing", "Animals & Habitats", "Simple Procedures"] },
-  3: { title: "Confident Storytellers", subtitle: "Explore themes, summaries, letters and diaries.", lessons: ["Story Retelling", "Descriptive Writing", "Friendly Letters", "Diary Writing"] },
-  4: { title: "Readers & Reporters", subtitle: "Compare texts, explore mood and explain ideas.", lessons: ["Fiction Series", "Mood & Tone", "Information Reports", "How Things Work"] },
-  5: { title: "Powerful Voices", subtitle: "Use evidence, interpret media and share opinions.", lessons: ["Memoirs", "Opinion Writing", "Media Messages", "Plays & Poems"] },
+const LESSONS: Record<number,string[]> = {
+  1:["Getting Started with English","My Classroom","My Family","Daily Routines","Animals Around Us","Colours & Shapes","Food","My School","Weather","Clothes","Transport","Community Helpers","Healthy Habits","Animals & Sounds","My Favourite Things","Term Review"],
+  2:["Classroom Language","Describing People","Stories We Love","Information Texts","Procedures","Places Around Us","Animals & Habitats","My Day","Festivals","My Favourite Place","Recounts","Story Characters","Rhyming Poems","Sequencing Events","Paragraph Builder","Term Review"],
+  3:["Story Retelling","Descriptive Writing","Letters","Diary Writing","Narratives","Information Texts","Poems & Rhyme","Summaries","Main Ideas","Past Tense","Feelings & Opinions","Themes & Morals","Facts and Diagrams","Speaking Clearly","Paragraph Organisation","Term Review"],
+  4:["Fiction Series","Mood & Tone","Reports","Explanations","Narrative Problems","Poetry & Imagery","Text Features","Comparing Texts","Reader’s Theatre","Audience & Language","Charts & Tables","Cause and Effect","Headings & Diagrams","Advanced Connectives","Character Comparison","Term Review"],
+  5:["Memoirs","Opinion Writing","Media Texts","Plays","Poetry & Imagery","Reports","Explanations","Narrative Writing","Structured Discussions","Evidence & Inference","Symbolism","Character Motivation","Persuasive Techniques","Figurative Language","Reflective Writing","Term Review"],
 };
 
-const GAMES = [
-  ["Word Match", "Match words to meanings", "/assets/word-match.jpg"],
-  ["Spelling Bee", "Build words letter by letter", "/assets/spelling-bee.jpg"],
-  ["Reading Race", "Read carefully and find clues", "/assets/reading-race.jpg"],
-  ["Story Builder", "Put story moments in order", "/assets/story-builder.jpg"],
-  ["Grammar Hero", "Rescue sentences from mistakes", "/assets/grammar-hero.jpg"],
+const SKILLS = ["Speak & Listen","Read & View","Write & Create","Word Power","Check & Reflect"];
+const GAME_META = [
+  {name:"Word Match",cover:"word-match.jpg",description:"Match each word with its meaning."},
+  {name:"Spelling Bee",cover:"spelling-bee.jpg",description:"Choose the correctly spelled word."},
+  {name:"Reading Race",cover:"reading-race.jpg",description:"Read the clue and find the answer."},
+  {name:"Story Builder",cover:"story-builder.jpg",description:"Choose what happens next in the story."},
+  {name:"Grammar Hero",cover:"grammar-hero.jpg",description:"Repair sentences and save the reef."},
+];
+const WORDS = [
+  ["sun","a bright star in our sky"],["reef","rocks and coral beneath the sea"],["kind","helpful and caring"],["journey","a trip from one place to another"],["predict","say what may happen next"],["enormous","very large"],["whisper","speak very quietly"],["habitat","a place where an animal lives"],["evidence","details that support an idea"],["persuade","help someone agree with you"],
 ];
 
-const BADGES = ["Starfish Scholar", "Dolphin Reader", "Reef Explorer", "Coconut Hero", "Lagoon Champion", "Coral Writer", "Turtle Thinker", "Seashell Genius"];
-const QUIZZES: Record<number, { q: string; options: string[]; answer: number; hint: string }> = {
-  1: { q: "Which sentence begins correctly?", options: ["this is my bag.", "This is my bag.", "this Is my bag"], answer: 1, hint: "A sentence begins with a capital letter and ends with a full stop." },
-  2: { q: "Which word shows what comes after ‘first’?", options: ["Next", "Blue", "Quiet"], answer: 0, hint: "We use sequencing words to order steps." },
-  3: { q: "Which sentence gives an opinion and a reason?", options: ["The reef is blue.", "I like the story because it is funny.", "Open the book."], answer: 1, hint: "Look for ‘I think’ or ‘I like’ followed by ‘because’." },
-  4: { q: "Which heading best fits facts about how turtles grow?", options: ["A Funny Day", "The Turtle Life Cycle", "My Favourite Food"], answer: 1, hint: "A heading tells the reader what the information is about." },
-  5: { q: "Which phrase uses imagery?", options: ["The sun was a golden lantern.", "The sun is hot.", "I saw the sun."], answer: 0, hint: "Imagery helps you form a strong picture in your mind." },
-};
+const blankProgress: Progress = {completed:[],stars:0,badges:[],streak:1};
+const effectiveGrade = (student: Student) => Math.max(1,Math.min(5,student.grade+(student.difficulty==="easy"?-1:student.difficulty==="hard"?1:0)));
 
-const emptyProgress: Progress = { completed: [], stars: 0, badges: [], streak: 1 };
-
-export default function OceanLearnApp() {
-  const [student, setStudent] = useState<Student | null>(null);
-  const [section, setSection] = useState<Section>("home");
-  const [progress, setProgress] = useState<Progress>(emptyProgress);
-  const [ready, setReady] = useState(false);
-  const [toast, setToast] = useState("");
-
-  useEffect(() => {
-    try {
-      const savedStudent = localStorage.getItem("oceanlearn.student.v1");
-      const savedProgress = localStorage.getItem("oceanlearn.progress.v1");
-      if (savedStudent) setStudent(JSON.parse(savedStudent));
-      if (savedProgress) setProgress({ ...emptyProgress, ...JSON.parse(savedProgress) });
-    } catch { localStorage.removeItem("oceanlearn.student.v1"); }
-    setReady(true);
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => undefined);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    if (student) localStorage.setItem("oceanlearn.student.v1", JSON.stringify(student));
-    localStorage.setItem("oceanlearn.progress.v1", JSON.stringify(progress));
-  }, [student, progress, ready]);
-
-  const celebrate = (message: string) => {
-    setToast(message);
-    window.setTimeout(() => setToast(""), 2400);
-  };
-
-  if (!ready) return <main className="loading"><div className="bubble-loader" /><p>Swimming to OceanLearn…</p></main>;
-  if (!student) return <Onboarding onStart={setStudent} />;
-
-  const complete = (id: string, stars = 3) => {
-    if (progress.completed.includes(id)) return celebrate("You already completed this adventure!");
-    const nextCompleted = [...progress.completed, id];
-    const earned = BADGES[Math.min(Math.floor(nextCompleted.length / 2), BADGES.length - 1)];
-    setProgress({ ...progress, completed: nextCompleted, stars: progress.stars + stars, badges: nextCompleted.length % 2 === 0 && !progress.badges.includes(earned) ? [...progress.badges, earned] : progress.badges });
-    celebrate(`Wonderful work! +${stars} stars`);
-  };
-
-  const reset = () => {
-    if (confirm("Reset all OceanLearn progress on this device? This cannot be undone.")) {
-      setProgress(emptyProgress);
-      celebrate("Progress reset. A fresh adventure begins!");
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("oceanlearn.student.v1");
-    setStudent(null);
-    setSection("home");
-  };
-
-  return (
-    <div className="app-shell">
-      <header className="top-dock">
-        <button className="brand" onClick={() => setSection("home")} aria-label="OceanLearn home"><img src="/assets/logo.jpg" alt="" /><span>Ocean<span>Learn</span></span></button>
-        <div className="student-chip"><span className="avatar-mini" aria-hidden="true">{["🐚","🐬","🐢","⭐","🦀", "🌴"][student.avatar]}</span><div><small>Explorer</small><strong>{student.name}</strong></div></div>
-        <div className="top-actions">
-          <button onClick={reset} title="Reset progress"><img src="/assets/reset.jpg" alt=""/><span>Reset</span></button>
-          <button onClick={logout} title="Log out"><img src="/assets/logout.jpg" alt=""/><span>Logout</span></button>
-        </div>
-      </header>
-
-      <main className="main-content">
-        {section === "home" && <Dashboard student={student} progress={progress} go={setSection} />}
-        {section === "lessons" && <Lessons grade={student.grade} progress={progress} complete={complete} />}
-        {section === "quizzes" && <Quiz grade={student.grade} complete={complete} />}
-        {section === "games" && <Games complete={complete} />}
-        {section === "rewards" && <Rewards progress={progress} />}
-        {section === "progress" && <ProgressView student={student} progress={progress} />}
-      </main>
-
-      <nav className="bottom-dock" aria-label="Main navigation">
-        {NAV.map(item => <button key={item.id} className={section === item.id ? "active" : ""} aria-current={section === item.id ? "page" : undefined} onClick={() => setSection(item.id)}><img src={item.icon} alt=""/><span>{item.label}</span></button>)}
-      </nav>
-      {toast && <div className="toast" role="status">⭐ {toast}</div>}
-    </div>
-  );
+function makeQuestion(level:number,index:number):Question {
+  const bands = [
+    [
+      {prompt:"Which is a complete sentence?",options:["The blue fish.","The fish can swim.","swim fish"],answer:1,explanation:"A complete sentence tells a whole idea, begins with a capital letter and ends with punctuation."},
+      {prompt:"Which word names an animal?",options:["turtle","quickly","yellow"],answer:0,explanation:"A turtle is an animal, so it is a naming word."},
+      {prompt:"Choose the word that rhymes with sun.",options:["fun","fish","sand"],answer:0,explanation:"Sun and fun end with the same sound."},
+      {prompt:"What comes first in a school day?",options:["Go home","Arrive at school","Eat dinner"],answer:1,explanation:"Events can be placed in the order they happen."},
+      {prompt:"Choose the polite request.",options:["Give me that!","Please may I have the book?","Book now."],answer:1,explanation:"Please and a complete question make the request polite."},
+    ],
+    [
+      {prompt:"Which adjective describes the lagoon?",options:["sparkling","swims","island"],answer:0,explanation:"An adjective describes a noun. Sparkling tells us how the lagoon looks."},
+      {prompt:"Choose the best sequencing word: First wash the shell. ___, dry it.",options:["Next","Blue","Because"],answer:0,explanation:"Next tells us the second step in a sequence."},
+      {prompt:"What is the main idea of ‘Turtles live near the reef and eat sea grass’ ?",options:["What turtles wear","Where turtles live and what they eat","How boats sail"],answer:1,explanation:"The main idea brings together the most important details."},
+      {prompt:"Which sentence is in the past tense?",options:["I walk home.","I walked home.","I will walk home."],answer:1,explanation:"Walked tells us the action already happened."},
+      {prompt:"Which title fits instructions for fruit salad?",options:["A Stormy Night","How to Make Fruit Salad","My Pet Crab"],answer:1,explanation:"A procedure title clearly names the task."},
+    ],
+    [
+      {prompt:"Which sentence gives an opinion with a reason?",options:["The dhoni is red.","I like island stories because they teach us about home.","Open the sail."],answer:1,explanation:"An opinion states a view and ‘because’ introduces the reason."},
+      {prompt:"The character packed a raincoat after seeing dark clouds. What can you infer?",options:["Rain may come","It is midnight","The coat is lost"],answer:0,explanation:"Dark clouds are evidence that rain may be coming."},
+      {prompt:"Which phrase creates imagery?",options:["The moon was a silver shell.","There was a moon.","I saw it."],answer:0,explanation:"The comparison creates a clear picture in the reader’s mind."},
+      {prompt:"Which heading belongs in an information report?",options:["Habitat","Once upon a time","Dear friend"],answer:0,explanation:"Information reports use clear headings to organise facts."},
+      {prompt:"Which connective shows contrast?",options:["however","therefore","first"],answer:0,explanation:"However signals that the next idea is different or contrasting."},
+    ],
+  ];
+  const band=level<=1?0:level<=3?1:2; return bands[band][index%5];
 }
 
-function Onboarding({ onStart }: { onStart: (student: Student) => void }) {
-  const [name, setName] = useState("");
-  const [grade, setGrade] = useState(1);
-  const [avatar, setAvatar] = useState(2);
-  const icons = ["🐚","🐬","🐢","⭐","🦀", "🌴"];
-  return <main className="onboarding">
-    <section className="welcome-card">
-      <img className="welcome-art" src="/assets/splash.jpg" alt="Friendly ocean animals by a sunny Maldivian island" />
-      <div className="welcome-form">
-        <div className="eyebrow">WELCOME, EXPLORER!</div>
-        <h1>Your English adventure starts here</h1>
-        <p>Learn with stories, games and friendly island guides.</p>
-        <label>Your name<input value={name} maxLength={18} onChange={e => setName(e.target.value)} placeholder="Type your name" /></label>
-        <fieldset><legend>Choose your grade</legend><div className="grade-row">{[1,2,3,4,5].map(g => <button type="button" className={grade === g ? "selected" : ""} onClick={() => setGrade(g)} key={g}>Grade {g}</button>)}</div></fieldset>
-        <fieldset><legend>Choose your ocean buddy</legend><div className="avatar-row">{icons.map((icon, i) => <button type="button" aria-label={`Buddy ${i + 1}`} className={avatar === i ? "selected" : ""} onClick={() => setAvatar(i)} key={i}>{icon}</button>)}</div></fieldset>
-        <button className="primary-button" disabled={!name.trim()} onClick={() => onStart({ name: name.trim(), grade, avatar })}>Dive in! <span>→</span></button>
-      </div>
-    </section>
-  </main>;
+export default function OceanLearnApp(){
+  const [student,setStudent]=useState<Student|null>(null); const [progress,setProgress]=useState<Progress>(blankProgress); const [section,setSection]=useState<Section>("home"); const [ready,setReady]=useState(false); const [toast,setToast]=useState(""); const [resetOpen,setResetOpen]=useState(false);
+  useEffect(()=>{try{const s=localStorage.getItem("oceanlearn.student.v2"),p=localStorage.getItem("oceanlearn.progress.v2");if(s)setStudent(JSON.parse(s));if(p)setProgress({...blankProgress,...JSON.parse(p)});}catch{}setReady(true);if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});},[]);
+  useEffect(()=>{if(!ready)return;if(student)localStorage.setItem("oceanlearn.student.v2",JSON.stringify(student));localStorage.setItem("oceanlearn.progress.v2",JSON.stringify(progress));},[student,progress,ready]);
+  const award=(id:string,stars=3)=>{if(progress.completed.includes(id)){show("You already found this treasure!");return;}const count=progress.completed.length+1;const badgeIndex=Math.min(19,Math.floor((count-1)/4));setProgress(p=>({...p,completed:[...p.completed,id],stars:p.stars+stars,badges:p.badges.includes(badgeIndex)?p.badges:[...p.badges,badgeIndex]}));show(`Brilliant! +${stars} stars`)};
+  const show=(text:string)=>{setToast(text);setTimeout(()=>setToast(""),2500)};
+  if(!ready)return <main className="loading"><div className="bubble-loader"/><p>Swimming to OceanLearn…</p></main>;
+  if(!student)return <Onboarding onStart={setStudent}/>;
+  const logout=()=>{localStorage.removeItem("oceanlearn.student.v2");setStudent(null);setSection("home")};
+  return <div className="app-shell">
+    <header className="top-dock"><button className="brand" onClick={()=>setSection("home")} aria-label="OceanLearn home"><img src="/assets/logo.jpg" alt=""/><span>Ocean<span>Learn</span></span></button><div className="top-treasures"><span>⭐ <strong>{progress.stars}</strong></span><span><img src={`/assets/generated/badge-${String(Math.max(1,progress.badges.length)).padStart(2,"0")}.png`} alt=""/> <strong>{progress.badges.length}</strong></span></div><div className="student-chip"><img src={`/assets/generated/${MASCOTS[student.avatar%5]}.png`} alt=""/><strong>{student.name}</strong></div><div className="top-actions"><button onClick={()=>setResetOpen(true)}><img src="/assets/reset.jpg" alt=""/><span>Reset</span></button><button onClick={logout}><img src="/assets/logout.jpg" alt=""/><span>Logout</span></button></div></header>
+    <main className="main-content">{section==="home"&&<Dashboard student={student} progress={progress} go={setSection}/>} {section==="lessons"&&<LessonLibrary student={student} progress={progress} award={award}/>} {section==="quizzes"&&<QuizLibrary student={student} progress={progress} award={award}/>} {section==="games"&&<GameLibrary student={student} progress={progress} award={award}/>} {section==="rewards"&&<Rewards progress={progress}/>} {section==="progress"&&<ProgressView student={student} progress={progress}/>}</main>
+    <nav className="bottom-dock" aria-label="Main navigation">{NAV.map(n=><button key={n.id} className={section===n.id?"active":""} onClick={()=>setSection(n.id)}><img src={`/assets/generated/${n.mascot}.png`} alt=""/><span>{n.label}</span></button>)}</nav>
+    {resetOpen&&<PlayfulReset onCancel={()=>setResetOpen(false)} onReset={()=>{setProgress(blankProgress);setResetOpen(false);show("Splash! Your lagoon is sparkling clean!")}}/>}{toast&&<div className="toast" role="status">⭐ {toast}</div>}
+  </div>;
 }
 
-function Dashboard({ student, progress, go }: { student: Student; progress: Progress; go: (s: Section) => void }) {
-  const theme = THEMES[student.grade];
-  return <>
-    <section className="hero-panel">
-      <div><div className="eyebrow">GRADE {student.grade} • TERM 1</div><h1>މަރުހަބާ, {student.name}! <span>Hello!</span></h1><p>Ready to explore a new English adventure?</p><button className="primary-button compact" onClick={() => go("lessons")}>Continue learning <span>→</span></button></div>
-      <img src="/assets/turtle.jpg" alt="Cheerful turtle mascot" />
-      <div className="sun" aria-hidden="true" />
-    </section>
-    <section className="stats-row" aria-label="Learning summary">
-      <article><span className="stat-icon coral">🔥</span><div><strong>{progress.streak}</strong><small>day streak</small></div></article>
-      <article><span className="stat-icon yellow">★</span><div><strong>{progress.stars}</strong><small>stars earned</small></div></article>
-      <article><span className="stat-icon teal">✓</span><div><strong>{progress.completed.length}</strong><small>activities done</small></div></article>
-    </section>
-    <div className="section-heading"><div><span className="eyebrow">TODAY'S ADVENTURE</span><h2>{theme.title}</h2></div><button className="text-button" onClick={() => go("lessons")}>See all lessons →</button></div>
-    <section className="featured-grid">
-      <article className="featured-card"><img src="/assets/lesson-set.jpg" alt="Ocean-themed English learning activities"/><div><span className="pill">NEXT LESSON</span><h3>{theme.lessons[0]}</h3><p>{theme.subtitle}</p><div className="mini-progress"><span style={{width: progress.completed.length ? "65%" : "18%"}}/></div><button onClick={() => go("lessons")}>Start lesson</button></div></article>
-      <article className="mascot-note"><img src="/assets/dolphin.jpg" alt="Dolphin guide"/><div><span className="eyebrow">DOLPHIN'S TIP</span><h3>Say it out loud!</h3><p>Reading aloud helps new words stick in your memory.</p></div></article>
-    </section>
-  </>;
-}
+function Onboarding({onStart}:{onStart:(s:Student)=>void}){const[name,setName]=useState("");const[grade,setGrade]=useState(1);const[difficulty,setDifficulty]=useState<Difficulty>("medium");const[avatar,setAvatar]=useState(1);return <main className="onboarding"><section className="welcome-card"><img className="welcome-art" src="/assets/splash.jpg" alt="OceanLearn island friends"/><div className="welcome-form"><div className="eyebrow">WELCOME, EXPLORER!</div><h1>Your English adventure starts here</h1><p>Learn with stories, games and friendly island guides.</p><label>Your name<input value={name} maxLength={18} onChange={e=>setName(e.target.value)} placeholder="Type your name"/></label><fieldset><legend>Choose your grade</legend><div className="grade-row">{[1,2,3,4,5].map(g=><button type="button" className={grade===g?"selected":""} onClick={()=>setGrade(g)} key={g}><span>Grade</span> {g}</button>)}</div></fieldset><fieldset><legend>Choose your challenge</legend><div className="difficulty-row">{(["easy","medium","hard"] as Difficulty[]).map(d=><button type="button" className={difficulty===d?"selected":""} onClick={()=>setDifficulty(d)} key={d}><strong>{d[0].toUpperCase()+d.slice(1)}</strong><small>{d==="easy"?(grade===1?"Gentle AI starter":"Previous grade"):d==="medium"?"Your grade":"Next grade"}</small></button>)}</div></fieldset><fieldset><legend>Choose your ocean buddy</legend><div className="avatar-row">{MASCOTS.map((m,i)=><button type="button" className={avatar===i?"selected":""} onClick={()=>setAvatar(i)} key={m}><img src={`/assets/generated/${m}.png`} alt={m}/></button>)}</div></fieldset><button className="primary-button" disabled={!name.trim()} onClick={()=>onStart({name:name.trim(),grade,difficulty,avatar})}>Dive in! →</button></div></section></main>}
 
-function Lessons({ grade, progress, complete }: { grade: number; progress: Progress; complete: (id: string) => void }) {
-  const theme = THEMES[grade];
-  return <section><PageTitle eyebrow={`GRADE ${grade} • ENGLISH`} title="Your learning lagoon" text={theme.subtitle}/><div className="lesson-list">{theme.lessons.map((lesson, i) => { const id = `g${grade}-lesson-${i}`; const done = progress.completed.includes(id); return <article className="lesson-card" key={lesson}><span className="lesson-number">{done ? "✓" : i + 1}</span><div><span className="eyebrow">{["SPEAK & LISTEN", "READ & VIEW", "WRITE & CREATE", "CHECK YOUR SKILLS"][i]}</span><h3>{lesson}</h3><p>{i === 0 ? "Meet useful words, listen carefully and practise with your island friends." : "Build on your skills with a short story, guided examples and a playful challenge."}</p></div><button className={done ? "done-button" : "small-button"} onClick={() => complete(id)}>{done ? "Completed" : "Complete lesson"}</button></article>})}</div></section>;
-}
+function Dashboard({student,progress,go}:{student:Student;progress:Progress;go:(s:Section)=>void}){const grade=effectiveGrade(student);return <><section className="hero-panel"><div><div className="eyebrow">GRADE {student.grade} • {student.difficulty.toUpperCase()} CHALLENGE</div><h1><span className="dhivehi" lang="dv" dir="rtl">މަރުހަބާ</span>, {student.name}! <span>Hello!</span></h1><p>Today’s learning is tuned to Grade {grade} skills.</p><button className="primary-button compact" onClick={()=>go("lessons")}>Continue learning →</button></div><img className="hero-mascot" src={`/assets/generated/${MASCOTS[student.avatar]}.png`} alt="Your OceanLearn buddy"/></section><section className="stats-row"><article>🔥 <div><strong>{progress.streak}</strong><small>day streak</small></div></article><article>⭐ <div><strong>{progress.stars}</strong><small>stars earned</small></div></article><article>🏅 <div><strong>{progress.badges.length}</strong><small>badges found</small></div></article></section><div className="section-heading"><div><span className="eyebrow">YOUR NEXT ADVENTURE</span><h2>{LESSONS[grade][Math.min(progress.completed.length%16,15)]}</h2></div><button className="text-button" onClick={()=>go("lessons")}>See all lessons →</button></div><section className="featured-grid"><article className="featured-card"><img src="/assets/lesson-set.jpg" alt="Ocean English activities"/><div><span className="pill">5 PART LESSON</span><h3>Learn one step at a time</h3><p>Discover, learn, see examples, practise, then check your skill.</p><button onClick={()=>go("lessons")}>Open lessons</button></div></article><article className="mascot-note"><img src="/assets/generated/dolphin.png" alt="Dolphin guide"/><div><span className="eyebrow">DOLPHIN’S TIP</span><h3>Say it out loud!</h3><p>Reading aloud helps new words stick in your memory.</p></div></article></section></>}
 
-function Quiz({ grade, complete }: { grade: number; complete: (id: string, stars?: number) => void }) {
-  const quiz = QUIZZES[grade];
-  const [choice, setChoice] = useState<number | null>(null);
-  const [checked, setChecked] = useState(false);
-  const correct = choice === quiz.answer;
-  const check = () => { setChecked(true); if (choice === quiz.answer) complete(`g${grade}-quiz`, 5); };
-  return <section><PageTitle eyebrow={`GRADE ${grade} CHALLENGE`} title="Quiz Cove" text="Take your time. Every answer helps your brain grow!"/><article className="quiz-panel"><div className="quiz-art"><img src="/assets/quiz-illustration.jpg" alt="Ocean friends thinking about a quiz question"/><span>1 of 1</span></div><div className="question"><span className="pill">ENGLISH QUIZ</span><h2>{quiz.q}</h2><div className="options">{quiz.options.map((option, i) => <button key={option} disabled={checked} onClick={() => setChoice(i)} className={`${choice === i ? "chosen" : ""} ${checked && i === quiz.answer ? "correct" : ""} ${checked && choice === i && !correct ? "wrong" : ""}`}><span>{String.fromCharCode(65+i)}</span>{option}</button>)}</div>{checked && <div className={`feedback ${correct ? "success" : "try"}`} role="status"><strong>{correct ? "Fin-tastic! That’s right." : "Good try—have another look."}</strong><p>{quiz.hint}</p>{!correct && <button onClick={() => {setChecked(false); setChoice(null)}}>Try again</button>}</div>} {!checked && <button className="primary-button compact" disabled={choice === null} onClick={check}>Check my answer</button>}</div></article></section>;
-}
+function LessonLibrary({student,progress,award}:{student:Student;progress:Progress;award:(id:string,n?:number)=>void}){const grade=effectiveGrade(student);const[lesson,setLesson]=useState<number|null>(null);return <section><PageTitle eyebrow={`GRADE ${grade} • COMPLETE CURRICULUM`} title="Learning Lagoon" text="Sixteen curriculum lessons, each with five guided learning steps."/>{lesson===null?<div className="curriculum-grid">{LESSONS[grade].map((name,i)=>{const done=progress.completed.includes(`lesson-${grade}-${i}`);return <button className="curriculum-card" key={name} onClick={()=>setLesson(i)}><span>{done?"✓":i+1}</span><div><small>{i<8?"TERM 1":"TERM 2"} • {SKILLS[i%5]}</small><strong>{name}</strong><em>5 sub-lessons</em></div></button>})}</div>:<LessonPlayer grade={grade} index={lesson} onBack={()=>setLesson(null)} onComplete={()=>award(`lesson-${grade}-${lesson}`,5)}/>}</section>}
 
-function Games({ complete }: { complete: (id: string, stars?: number) => void }) {
-  return <section><PageTitle eyebrow="PLAY • PRACTISE • GROW" title="Game Reef" text="Choose a game and practise English while you play."/><div className="game-grid">{GAMES.map(([title, text, image], i) => <article className="game-card" key={title}><img src={image} alt={`${title} game cover`}/><div><span className="pill">{i < 2 ? "QUICK PLAY" : "ADVENTURE"}</span><h3>{title}</h3><p>{text}</p><button onClick={() => complete(`game-${i}`, 2)}>Play round</button></div></article>)}</div></section>;
-}
+function LessonPlayer({grade,index,onBack,onComplete}:{grade:number;index:number;onBack:()=>void;onComplete:()=>void}){const[step,setStep]=useState(0);const topic=LESSONS[grade][index];const explanations=[`Let’s discover ${topic.toLowerCase()}. This lesson connects speaking, reading and writing so you can use English with confidence.`,`Key idea: good learners listen for meaning, notice useful words, and organise ideas clearly. At Grade ${grade}, we practise this through ${topic.toLowerCase()}.`,`Example: imagine explaining “${topic}” to an island friend. Begin with the main idea, add a clear detail, then check that your words are in a sensible order.`,`Your turn: say one idea aloud. Read it slowly. Now write or imagine a complete sentence with a capital letter, clear words and correct punctuation.`,`Reflect: What did you learn? Can you explain it in your own words and give one example? If yes, you are ready to collect your stars!`];return <article className="lesson-player"><button className="back-button" onClick={onBack}>← All lessons</button><div className="lesson-player-head"><img src={`/assets/generated/${MASCOTS[index%5]}.png`} alt="Lesson guide"/><div><span className="eyebrow">LESSON {index+1} • SUB-LESSON {step+1} OF 5</span><h1>{topic}</h1><p>{SKILLS[step]}</p></div></div><div className="step-dots">{SKILLS.map((s,i)=><button key={s} className={i===step?"current":i<step?"finished":""} onClick={()=>setStep(i)}><span>{i<step?"✓":i+1}</span><small>{s}</small></button>)}</div><div className="lesson-explanation"><span className="pill">{SKILLS[step]}</span><h2>{["What will we learn?","Understand the idea","See it in action","Practise the skill","Show what you know"][step]}</h2><p>{explanations[step]}</p><div className="example-box"><strong>{step===0?"Learning goal":step===1?"Remember":step===2?"Island example":step===3?"Try this": "Success check"}</strong><p>{step<4?`Use clear English to explore ${topic.toLowerCase()} at a Grade ${grade} level.`:"I can explain the idea, use an example, and check my work."}</p></div></div><div className="lesson-controls"><button onClick={()=>setStep(Math.max(0,step-1))} disabled={step===0}>← Previous</button>{step<4?<button className="primary-button compact" onClick={()=>setStep(step+1)}>Next sub-lesson →</button>:<button className="primary-button compact" onClick={onComplete}>Finish & collect 5 stars ⭐</button>}</div></article>}
 
-function Rewards({ progress }: { progress: Progress }) {
-  return <section><PageTitle eyebrow="YOUR COLLECTION" title="Treasure Chest" text="Every new skill brings you closer to another island badge."/><div className="reward-hero"><img src="/assets/badges.jpg" alt="OceanLearn achievement badge collection"/><div><strong>{progress.badges.length} / {BADGES.length}</strong><span>featured badges unlocked</span></div></div><div className="badge-grid">{BADGES.map((badge, i) => {const unlocked = progress.badges.includes(badge); return <article className={unlocked ? "unlocked" : "locked"} key={badge}><span>{["⭐","🐬","🤿","🌴","🌊","🪸","🐢","🐚"][i]}</span><h3>{badge}</h3><p>{unlocked ? "Unlocked—wonderful work!" : `Complete ${Math.max(1, (i+1)*2)} activities to discover.`}</p></article>})}</div></section>;
-}
+function QuizLibrary({student,progress,award}:{student:Student;progress:Progress;award:(id:string,n?:number)=>void}){const grade=effectiveGrade(student);const[set,setSet]=useState<number|null>(null);return <section><PageTitle eyebrow={`${student.difficulty.toUpperCase()} • GRADE ${grade} SKILLS`} title="Quiz Cove" text="Twenty quiz sets with five questions in every set."/>{set===null?<div className="level-grid">{Array.from({length:20},(_,i)=><button key={i} className={progress.completed.includes(`quiz-${grade}-${i}`)?"level done":"level"} onClick={()=>setSet(i)}><strong>{i+1}</strong><span>Quiz set</span><small>5 questions</small></button>)}</div>:<QuizPlayer grade={grade} set={set} onBack={()=>setSet(null)} onComplete={()=>award(`quiz-${grade}-${set}`,8)}/>}</section>}
 
-function ProgressView({ student, progress }: { student: Student; progress: Progress }) {
-  const percent = Math.min(100, Math.round(progress.completed.length / 12 * 100));
-  return <section><PageTitle eyebrow={`GRADE ${student.grade} JOURNEY`} title={`${student.name}’s progress`} text="Small steps make strong readers, speakers and writers."/><div className="progress-layout"><article className="big-progress"><div className="progress-circle" style={{"--value": `${percent * 3.6}deg`} as React.CSSProperties}><span><strong>{percent}%</strong><small>term journey</small></span></div><div><h3>You’re making waves!</h3><p>Keep exploring lessons, quizzes and games to fill your lagoon.</p></div></article><article className="skills-card"><h3>English skills</h3>{["Speaking & Listening", "Reading & Viewing", "Writing & Representing"].map((skill, i) => <div className="skill" key={skill}><div><span>{skill}</span><strong>{Math.min(100, percent + i * 7)}%</strong></div><div><span style={{width: `${Math.min(100, percent + i * 7)}%`}}/></div></div>)}</article></div></section>;
-}
+function QuizPlayer({grade,set,onBack,onComplete}:{grade:number;set:number;onBack:()=>void;onComplete:()=>void}){const[pos,setPos]=useState(0);const[choice,setChoice]=useState<number|null>(null);const[checked,setChecked]=useState(false);const[score,setScore]=useState(0);const q=makeQuestion(grade,(set+pos)%5);const choose=()=>{if(choice===null)return;setChecked(true);if(choice===q.answer)setScore(s=>s+1)};const next=()=>{if(pos===4){onComplete();onBack()}else{setPos(pos+1);setChoice(null);setChecked(false)}};return <article className="quiz-player"><button className="back-button" onClick={onBack}>← Quiz sets</button><div className="quiz-status"><span>Set {set+1}</span><strong>Question {pos+1} of 5</strong><span>Score {score}</span></div><h2>{q.prompt}</h2><div className="options">{q.options.map((o,i)=><button key={o} disabled={checked} className={`${choice===i?"chosen":""} ${checked&&i===q.answer?"correct":""} ${checked&&choice===i&&i!==q.answer?"wrong":""}`} onClick={()=>setChoice(i)}><span>{String.fromCharCode(65+i)}</span>{o}</button>)}</div>{checked&&<div className={choice===q.answer?"feedback success":"feedback try"}><strong>{choice===q.answer?"Fin-tastic!":"Good try!"}</strong><p>{q.explanation}</p></div>}<button className="primary-button compact" disabled={choice===null} onClick={checked?next:choose}>{checked?(pos===4?"Finish quiz":"Next question →"):"Check answer"}</button></article>}
 
-function PageTitle({ eyebrow, title, text }: { eyebrow: string; title: string; text: string }) { return <header className="page-title"><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{text}</p></header>; }
+function GameLibrary({student,progress,award}:{student:Student;progress:Progress;award:(id:string,n?:number)=>void}){const[game,setGame]=useState<number|null>(null);const[level,setLevel]=useState<number|null>(null);const grade=effectiveGrade(student);if(game!==null&&level!==null)return <GamePlayer game={game} level={level} grade={grade} onBack={()=>setLevel(null)} onWin={()=>award(`game-${game}-${level}`,4)}/>;if(game!==null)return <section><button className="back-button" onClick={()=>setGame(null)}>← All games</button><PageTitle eyebrow="20 PLAYABLE LEVELS" title={GAME_META[game].name} text={GAME_META[game].description}/><div className="level-grid">{Array.from({length:20},(_,i)=><button key={i} className={progress.completed.includes(`game-${game}-${i}`)?"level done":"level"} onClick={()=>setLevel(i)}><strong>{i+1}</strong><span>Level</span><small>{i<7?"Shell":i<14?"Reef":"Ocean"}</small></button>)}</div></section>;return <section><PageTitle eyebrow={`GRADE ${grade} • PLAY TO LEARN`} title="Game Reef" text="Five real games with twenty levels each."/><div className="game-grid">{GAME_META.map((g,i)=><button className="game-card" key={g.name} onClick={()=>setGame(i)}><img src={`/assets/${g.cover}`} alt=""/><div><span className="pill">20 LEVELS</span><h3>{g.name}</h3><p>{g.description}</p><strong>Choose levels →</strong></div></button>)}</div></section>}
+
+function GamePlayer({game,level,grade,onBack,onWin}:{game:number;level:number;grade:number;onBack:()=>void;onWin:()=>void}){const[choice,setChoice]=useState<number|null>(null);const[done,setDone]=useState(false);const word=WORDS[(level+grade)%WORDS.length];const prompts=[`What does “${word[0]}” mean?`,`Which spelling is correct?`,`Read: “The ${word[0]} is important.” Which word was used?`,`A child discovers ${word[0]}. What should the story mention next?`,`Choose the best sentence.`];const options=[ [word[1],"a kind of noisy storm","a number"], [word[0],word[0].slice(0,-1)+"ee",word[0]+"h"], [word[0],"boat","school"], [`More about ${word[0]}`,"A completely different day","No ending"], [`We learned about ${word[0]}.`,`learned we about`,`${word[0]} the the`] ][game];const answer=0;const check=()=>{setDone(true);if(choice===answer)onWin()};return <section className="game-stage"><button className="back-button" onClick={onBack}>← Levels</button><div className="game-stage-head"><img src={`/assets/generated/${NAV[game].mascot}.png`} alt="Game guide"/><div><span className="eyebrow">{GAME_META[game].name.toUpperCase()}</span><h1>Level {level+1}</h1><p>Grade {grade} challenge</p></div></div><article className="game-question"><div className="level-meter"><span style={{width:`${(level+1)*5}%`}}/></div><h2>{prompts[game]}</h2><div className="options">{options.map((o,i)=><button key={o} className={`${choice===i?"chosen":""} ${done&&i===answer?"correct":""} ${done&&choice===i&&i!==answer?"wrong":""}`} disabled={done} onClick={()=>setChoice(i)}><span>{["🐚","🐠","⭐"][i]}</span>{o}</button>)}</div>{done&&<div className={choice===answer?"feedback success":"feedback try"}><strong>{choice===answer?"Level complete! +4 stars":"Oops—the reef guide has a clue."}</strong><p>{choice===answer?"You used the English skill correctly.":`Look again at “${word[0]}” and choose the clearest answer.`}</p></div>}<button className="primary-button compact" disabled={choice===null||done} onClick={check}>Check my move</button></article></section>}
+
+function Rewards({progress}:{progress:Progress}){return <section><PageTitle eyebrow="20 INDIVIDUAL TREASURES" title="Badge Island" text="Every badge is a new treasure created for OceanLearn."/><div className="badge-grid full">{BADGES.map((name,i)=>{const unlocked=progress.badges.includes(i);return <article className={unlocked?"unlocked":"locked"} key={name}><img src={`/assets/generated/badge-${String(i+1).padStart(2,"0")}.png`} alt=""/><h3>{name}</h3><p>{unlocked?"Unlocked—wonderful work!":`Complete ${i*4+1} activities to unlock.`}</p></article>})}</div></section>}
+
+function ProgressView({student,progress}:{student:Student;progress:Progress}){const percent=Math.min(100,Math.round(progress.completed.length/80*100));return <section><PageTitle eyebrow={`GRADE ${student.grade} • ${student.difficulty.toUpperCase()}`} title={`${student.name}’s progress`} text="Small steps make strong readers, speakers and writers."/><div className="progress-layout"><article className="big-progress"><div className="progress-circle" style={{"--value":`${percent*3.6}deg`} as React.CSSProperties}><span><strong>{percent}%</strong><small>journey</small></span></div><div><h3>You’re making waves!</h3><p>{progress.completed.length} activities completed, {progress.stars} stars and {progress.badges.length} badges.</p></div></article><article className="skills-card"><h3>English skills</h3>{["Speaking & Listening","Reading & Viewing","Writing & Representing"].map((s,i)=><div className="skill" key={s}><div><span>{s}</span><strong>{Math.min(100,percent+i*4)}%</strong></div><div><span style={{width:`${Math.min(100,percent+i*4)}%`}}/></div></div>)}</article></div></section>}
+
+function PlayfulReset({onCancel,onReset}:{onCancel:()=>void;onReset:()=>void}){return <div className="modal-backdrop" role="presentation"><section className="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-title"><img src="/assets/generated/crab.png" alt="Funny crab holding up its claws"/><span className="eyebrow">UH-OH, BIG SPLASH!</span><h2 id="reset-title">Wash away all your treasure?</h2><p>The cheeky crab will clear your stars, badges and completed adventures. Your name and ocean buddy can stay.</p><div><button onClick={onCancel}>No, save my treasure!</button><button className="danger-fun" onClick={onReset}>Yes, make a splash 🌊</button></div></section></div>}
+function PageTitle({eyebrow,title,text}:{eyebrow:string;title:string;text:string}){return <header className="page-title"><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{text}</p></header>}
