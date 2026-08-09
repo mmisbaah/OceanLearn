@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./v6.css";
 import "./v7.css";
+import "./v8.css";
 
 export const metadata: Metadata = {
   title: "OceanLearn — English adventures for Grades 1–5",

@@ -31,7 +31,37 @@ function shuffled(question:CurriculumQuestion,salt:number){
  return {...question,options,answer:slot};
 }
 
+const FIRST_ICONS=["🍎","⚽","🐱","🐶","👋","🚪","✅","❌","🙋","👉","🏷️","📘","✏️","🎒","🔴","🔵","1️⃣","2️⃣","🪑","🧍"];
+const FIRST_SAY=["A","B","C","D","hello","goodbye","yes","no","I","you","name","book","pencil","bag","red","blue","one","two","sit","stand"];
+
+function firstChoices(set:number){
+ const a=set,b=(set+7)%20,c=(set+13)%20;
+ return [a,b,c];
+}
+
+function foundationQuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
+ const ids=firstChoices(set),word=FIRST_SAY[set],icon=FIRST_ICONS[set],token=`Q-0-${set}-${pos}`;
+ const choices=ids.map(i=>`${FIRST_ICONS[i]} ${FIRST_SAY[i]}`);
+ const variants:CurriculumQuestion[]=[
+  {token,prompt:`Look. Tap ${word}.`,options:choices,answer:0,explanation:`Yes! ${icon} ${word}.`},
+  {token,prompt:`Find the same: ${word}`,options:choices,answer:0,explanation:`Great! You found ${word}.`},
+  {token,prompt:`${icon} is ...`,options:ids.map(i=>FIRST_SAY[i]),answer:0,explanation:`${icon} is ${word}.`},
+  {token,prompt:`Hear: ${word}. Tap.`,options:choices,answer:0,explanation:`Well done! Say ${word}.`},
+  {token,prompt:`One more! Find ${word}.`,options:choices,answer:0,explanation:`Star work! ${icon} ${word}.`},
+ ];
+ return shuffled(variants[pos],salt);
+}
+
+function foundationGameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
+ const target=(level+game*4)%20,ids=[target,(target+6)%20,(target+11)%20],word=FIRST_SAY[target],icon=FIRST_ICONS[target];
+ const token=`G-${game}-0-${level}-${pos}`,lead=["Match","Build","Race","Story","Fix"][game],tag=`${lead} ${level+1}`;
+ const choices=ids.map(i=>`${FIRST_ICONS[i]} ${FIRST_SAY[i]}`);
+ const prompts=[`${tag}: ${word}.`,`${tag}: Look ${icon}.`,`${tag}: Find ${word}.`,`${tag}: Hear ${word}.`,`${tag}: Last ${word}.`];
+ return shuffled({token,prompt:prompts[pos],options:choices,answer:0,explanation:`Yes! ${icon} ${word}.`},salt);
+}
+
 export function quizQuestion(stage:number,set:number,pos:number,salt:number):CurriculumQuestion{
+ if(stage===0)return foundationQuizQuestion(set,pos,salt);
  const s=STAGES[stage], [word,meaning,example]=s.words[set];
  const a=s.words[(set+7)%20],b=s.words[(set+13)%20];
  const band=set<7?"Foundation":set<14?"Application":"Challenge";
@@ -47,6 +77,7 @@ export function quizQuestion(stage:number,set:number,pos:number,salt:number):Cur
 }
 
 export function gameQuestion(game:number,stage:number,level:number,pos:number,salt:number):CurriculumQuestion{
+ if(stage===0)return foundationGameQuestion(game,level,pos,salt);
  const s=STAGES[stage], idx=level%20,[word,meaning,example]=s.words[idx];
  const x=s.words[(idx+5)%20],y=s.words[(idx+11)%20],token=`G-${game}-${stage}-${level}-${pos}`;
  const miss=word.length>2?word.slice(0,-1):word+"x",first=word[0].toUpperCase();
