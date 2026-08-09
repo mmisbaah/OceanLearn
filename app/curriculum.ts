@@ -41,7 +41,7 @@ function firstChoices(set:number){
 
 function foundationQuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
  const ids=firstChoices(set),word=FIRST_SAY[set],icon=FIRST_ICONS[set],token=`Q-0-${set}-${pos}`;
- const choices=ids.map(i=>`${FIRST_ICONS[i]} ${FIRST_SAY[i]}`);
+ const choices=ids.map(i=>FIRST_SAY[i]);
  const variants:CurriculumQuestion[]=[
   {token,prompt:`Look. Tap ${word}.`,options:choices,answer:0,explanation:`Yes! ${icon} ${word}.`},
   {token,prompt:`Find the same: ${word}`,options:choices,answer:0,explanation:`Great! You found ${word}.`},
@@ -55,7 +55,7 @@ function foundationQuizQuestion(set:number,pos:number,salt:number):CurriculumQue
 function foundationGameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
  const target=(level+game*4)%20,ids=[target,(target+6)%20,(target+11)%20],word=FIRST_SAY[target],icon=FIRST_ICONS[target];
  const token=`G-${game}-0-${level}-${pos}`,lead=["Match","Build","Race","Story","Fix"][game],tag=`${lead} ${level+1}`;
- const choices=ids.map(i=>`${FIRST_ICONS[i]} ${FIRST_SAY[i]}`);
+ const choices=ids.map(i=>FIRST_SAY[i]);
  const prompts=[`${tag}: ${word}.`,`${tag}: Look ${icon}.`,`${tag}: Find ${word}.`,`${tag}: Hear ${word}.`,`${tag}: Last ${word}.`];
  return shuffled({token,prompt:prompts[pos],options:choices,answer:0,explanation:`Yes! ${icon} ${word}.`},salt);
 }
