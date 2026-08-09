@@ -1,4 +1,5 @@
 import {STAGES,quizQuestion as multipleChoiceQuestion,type CurriculumQuestion} from "./curriculum";
+import {quizVocabulary} from "./vocabulary";
 
 export type QuestionType="dictation"|"multiple-choice"|"fill-blank"|"reading-comprehension";
 export type QuizQuestion=CurriculumQuestion&{type:QuestionType;audioText?:string;passage?:string;acceptedAnswers?:string[];placeholder?:string};
@@ -15,8 +16,8 @@ function wordAt(stage:number,set:number){return STAGES[stage].words[set%20]}
 export function generateQuizQuestion(stage:number,set:number,pos:number,salt:number,learnerGrade:number):QuizQuestion{
  const type=questionTypePlan(learnerGrade)[pos],[word,meaning,example]=wordAt(stage,set),token=`QE-${stage}-${set}-${pos}`;
  if(type==="dictation"){
-  const heard=learnerGrade===1?word:example.replace(/[.!?]$/g,"");
-  return {type,token,prompt:`Set ${set+1}: Listen and type what you hear.`,audioText:heard,acceptedAnswers:[heard],placeholder:learnerGrade===1?"Type the word":"Type the sentence",options:[],answer:0,explanation:`You heard: ${heard}.`};
+  const heard=quizVocabulary(stage,set,pos);
+  return {type,token,prompt:`Set ${set+1}: Listen and type the word.`,audioText:heard,acceptedAnswers:[heard],placeholder:"Type the word",options:[],answer:0,explanation:`The word is “${heard}”.`};
  }
  if(type==="fill-blank")return {type,token,prompt:`Set ${set+1}: Aminath sees a ___ near the island.`,acceptedAnswers:[word],placeholder:"Type the missing word",options:[],answer:0,explanation:`The missing word is “${word}”.`};
  if(type==="reading-comprehension"){
@@ -30,4 +31,3 @@ export function generateQuizQuestion(stage:number,set:number,pos:number,salt:num
  return {...multipleChoiceQuestion(stage,set,pos,salt),type:"multiple-choice"};
 }
 export function generateQuizSet(stage:number,set:number,salt:number,learnerGrade:number):QuizSet{return {id:`quiz-${stage}-${set}`,grade:learnerGrade,stage,questions:Array.from({length:5},(_,pos)=>generateQuizQuestion(stage,set,pos,salt,learnerGrade))}}
-

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { STAGES, stageIndex, gameQuestion, type CurriculumQuestion as Question } from "./curriculum";
 import {generateQuizQuestion,type QuizQuestion} from "./quizEngine";
+import {lessonVocabulary,VOCABULARY_TARGETS} from "./vocabulary";
 
 type Difficulty = "easy" | "medium" | "hard";
 type Section = "home" | "lessons" | "quizzes" | "games" | "rewards" | "progress";
@@ -49,7 +50,7 @@ const FOUNDATION_FIRST_FIVE:Array<Omit<FoundationLesson,"activities">&{letters:s
  {tier:1,title:"Letters U–Z",outcome:"I can name U, V, W, X, Y and Z.",focus:["U u","V v","W w","X x","Y y","Z z"],letters:["U","V","W","X","Y","Z"],story:["A wave is by the van.","I see a yo-yo and a zebra.","The umbrella is up."]},
 ];
 const GRADE1_EASY_FIRST_FIVE:FoundationLesson[]=FOUNDATION_FIRST_FIVE.map(item=>({...item,activities:Array.from({length:5},(_,step)=>letterActivity(item.letters,step))}));
-const GRADE1_EASY_PATH={tiers:[{id:1,name:"Alphabet Foundations",lessons:[1,2,3,4,5]},{id:2,name:"Basic Phonetics",lessons:[6,7,8,9,10]},{id:3,name:"Maldivian Environment Words",lessons:[11,12]},{id:4,name:"Common Words to 100",lessons:[13,14,15,16,17,18,19,20]}],lexicon:FIRST_100_WORDS,masteryTarget:100,firstFive:GRADE1_EASY_FIRST_FIVE};
+const GRADE1_EASY_PATH={tiers:[{id:1,name:"Alphabet Foundations",lessons:[1,2,3,4,5]},{id:2,name:"Basic Phonetics",lessons:[6,7,8,9,10]},{id:3,name:"Maldivian Environment Words",lessons:[11,12]},{id:4,name:"Common Words to 50",lessons:[13,14,15,16,17,18,19,20]}],lexicon:FIRST_100_WORDS.slice(0,50),masteryTarget:50,firstFive:GRADE1_EASY_FIRST_FIVE};
 const ADVANCED_G5=["Synthesising Sources","Nuance and Word Choice","Rhetorical Appeals","Source Credibility","Corroborating Evidence","Ambiguity in Literature","Connotation and Denotation","Irony and Expectation","Foreshadowing","Multiple Perspectives","Cohesion Across Paragraphs","Building a Thesis","Qualifying Claims","Evaluating Evidence","Formal Register and Citations","Independent Critical Response"];
 const lessonsForStage=(stage:number)=>stage===0?FIRST_ENGLISH:stage===6?ADVANCED_G5:LESSONS[STAGES[stage].grade];
 
@@ -216,7 +217,7 @@ function Dashboard({student,progress,go}:{student:Student;progress:Progress;go:(
 function LessonLibrary({student,progress,award}:{student:Student;progress:Progress;award:(id:string,n?:number)=>void}){
  const stage=curriculumStage(student),lessons=lessonsForStage(stage);const[lesson,setLesson]=useState<number|null>(null);
  const finish=()=>{if(lesson===null)return;award(`lesson-${stage}-${lesson}`,5);setLesson(lesson<lessons.length-1?lesson+1:null)};
- return <section><PageTitle eyebrow={STAGES[stage].label.toUpperCase()} title="Learning Lagoon" text={`Sixteen curriculum lessons with five guided steps. ${STAGES[stage].support}.`}/>{lesson===null?<div className="curriculum-grid">{lessons.map((name,i)=>{const done=progress.completed.includes(`lesson-${stage}-${i}`);return <button className="curriculum-card" key={name} onClick={()=>setLesson(i)}><span>{done?"✓":i+1}</span><div><small>{i<8?"TERM 1":"TERM 2"} • {SKILLS[i%5]}</small><strong>{name}</strong><em>5 sub-lessons</em></div></button>})}</div>:<LessonPlayer stage={stage} index={lesson} onBack={()=>setLesson(null)} onComplete={finish}/>}</section>
+ return <section><PageTitle eyebrow={STAGES[stage].label.toUpperCase()} title="Learning Lagoon" text={`${lessons.length} lessons share a ${VOCABULARY_TARGETS[stage]}-word mastery path with quizzes. ${STAGES[stage].support}.`}/>{lesson===null?<div className="curriculum-grid">{lessons.map((name,i)=>{const done=progress.completed.includes(`lesson-${stage}-${i}`),words=lessonVocabulary(stage,i,lessons.length);return <button className="curriculum-card" key={name} onClick={()=>setLesson(i)}><span>{done?"✓":i+1}</span><div><small>{i<Math.ceil(lessons.length/2)?"TERM 1":"TERM 2"} • {SKILLS[i%5]}</small><strong>{name}</strong><em>5 sub-lessons • {words.length} focus words</em></div></button>})}</div>:<LessonPlayer stage={stage} index={lesson} onBack={()=>setLesson(null)} onComplete={finish}/>}</section>
 }
 
 function InlinePractice({activity,onSolved}:{activity:FoundationActivity;onSolved:()=>void}){
