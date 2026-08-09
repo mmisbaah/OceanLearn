@@ -1,0 +1,290 @@
+[
+  {
+    "file": "avatar-01.png",
+    "bbox": [
+      48,
+      19,
+      207,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "f6d5a5625787"
+  },
+  {
+    "file": "avatar-02.png",
+    "bbox": [
+      42,
+      19,
+      213,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "abc46538caca"
+  },
+  {
+    "file": "avatar-03.png",
+    "bbox": [
+      40,
+      19,
+      216,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "8b4624c7a641"
+  },
+  {
+    "file": "avatar-04.png",
+    "bbox": [
+      46,
+      19,
+      210,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "a9e27d4676c4"
+  },
+  {
+    "file": "avatar-05.png",
+    "bbox": [
+      48,
+      19,
+      207,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "873288b3a57a"
+  },
+  {
+    "file": "avatar-06.png",
+    "bbox": [
+      44,
+      19,
+      212,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "5d3b51268355"
+  },
+  {
+    "file": "avatar-07.png",
+    "bbox": [
+      50,
+      19,
+      206,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "b0b5a641832a"
+  },
+  {
+    "file": "avatar-08.png",
+    "bbox": [
+      43,
+      19,
+      213,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "cdfa71070bd0"
+  },
+  {
+    "file": "avatar-09.png",
+    "bbox": [
+      47,
+      19,
+      208,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "8391b181c01c"
+  },
+  {
+    "file": "avatar-10.png",
+    "bbox": [
+      51,
+      19,
+      205,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "93ece06e6815"
+  },
+  {
+    "file": "avatar-11.png",
+    "bbox": [
+      31,
+      19,
+      224,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "cd329c07040c"
+  },
+  {
+    "file": "avatar-12.png",
+    "bbox": [
+      46,
+      19,
+      210,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "238fc08fb7f5"
+  },
+  {
+    "file": "avatar-13.png",
+    "bbox": [
+      46,
+      19,
+      210,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "cab23789801c"
+  },
+  {
+    "file": "avatar-14.png",
+    "bbox": [
+      38,
+      19,
+      218,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "6ce306ad9c2f"
+  },
+  {
+    "file": "avatar-15.png",
+    "bbox": [
+      48,
+      19,
+      208,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "4686b2016e54"
+  },
+  {
+    "file": "avatar-16.png",
+    "bbox": [
+      49,
+      19,
+      207,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "dd848472bb68"
+  },
+  {
+    "file": "avatar-17.png",
+    "bbox": [
+      47,
+      19,
+      208,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "77db3ad0cf33"
+  },
+  {
+    "file": "avatar-18.png",
+    "bbox": [
+      49,
+      19,
+      207,
+      237
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "hash": "5eba4194bb00"
+  }
+]
