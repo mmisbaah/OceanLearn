@@ -17,7 +17,7 @@ assert.equal(new Set(lessonStories).size,lessonStories.length,"a lesson story re
 
 const quizStories=[];
 for(let stage=3;stage<7;stage++)for(let set=0;set<20;set++)for(const pos of [0,3]){
- const passage=maldivianQuizPassage(stage,set,pos,"reef");
+ const passage=maldivianQuizPassage(stage,set,pos,"headline","the title of a news story","The headline tells the main event.");
  assert.match(passage,islandWords,`quiz passage lacks Maldivian context: ${stage}/${set}/${pos}`);
  quizStories.push(passage);
 }

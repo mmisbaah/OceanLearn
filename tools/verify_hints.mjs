@@ -3,6 +3,7 @@ import fs from "node:fs";
 import {gameQuestion,STAGES} from "../app/curriculum.ts";
 
 const engine=fs.readFileSync(new URL("../app/quizEngine.ts",import.meta.url),"utf8");
+const app=fs.readFileSync(new URL("../app/OceanLearnApp.tsx",import.meta.url),"utf8");
 assert.match(engine,/if\(type==="dictation"\)[\s\S]*?return hinted\(/,"dictation hint missing");
 assert.match(engine,/if\(type==="fill-blank"\)return hinted\(/,"fill-blank hint missing");
 assert.match(engine,/if\(type==="reading-comprehension"\)[\s\S]*?return hinted\(/,"reading hint missing");
@@ -13,3 +14,5 @@ for(let game=0;game<5;game++)for(let stage=0;stage<7;stage++)for(let level=0;lev
  assert.match(q.prompt,/💡 Hint:/,`game hint missing at ${game}/${stage}/${level}/${pos}`);gameCount++;
 }
 console.log(`Hints verified: ${quizCount} quiz questions and ${gameCount} game puzzles.`);
+assert.match(app,/className="hint-toggle"/,"clickable hint control missing");
+assert.match(app,/open&&<p className="hint-panel"/,"hints are not hidden until requested");
