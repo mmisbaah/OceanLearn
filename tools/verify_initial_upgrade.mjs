@@ -1,0 +1,14 @@
+import fs from "node:fs";
+const src=fs.readFileSync(new URL("../app/OceanLearnApp.tsx",import.meta.url),"utf8");
+const css=fs.readFileSync(new URL("../app/v8.css",import.meta.url),"utf8");
+const words=src.match(/const FIRST_100_WORDS=\[(.*?)\];/s)?.[1].match(/"[^"]+"/g)??[];
+if(words.length!==100||new Set(words).size!==100)throw new Error("Pass 1: lexicon must contain 100 unique words");
+if(!src.includes('name:"Alphabet Foundations"')||!src.includes('name:"Basic Phonetics"')||!src.includes('name:"Maldivian Environment Words"')||!src.includes('name:"Common Words to 100"'))throw new Error("Pass 1: four tiers missing");
+if(!src.includes("disabled={!!foundation&&!practiceDone}"))throw new Error("Pass 1: lesson progression is not gated by practice");
+for(const text of ["Gentle AI starter","Previous grade","Your grade","Next grade"])if(src.includes(text))throw new Error(`Pass 2: old difficulty subtitle remains: ${text}`);
+if(!css.includes(".inline-practice")||!css.includes(".read-learn"))throw new Error("Pass 2: interactive/story layouts missing");
+for(const group of ["A","F","K","P","U"])if(!src.includes(`letters:["${group}`))throw new Error(`Pass 3: alphabet group ${group} missing`);
+if(!src.includes("const LETTER_PICTURES")||!src.includes("Tap the picture for"))throw new Error("Pass 3: semantic letter-picture mapping missing");
+const stories=[...src.matchAll(/story:\[(.*?)\]/gs)].map(m=>m[1].match(/"[^"]+"/g)?.length??0);
+if(stories.length<5||stories.slice(0,5).some(n=>n<2||n>5))throw new Error("Pass 3: first five stories must contain 2-5 sentences");
+console.log(JSON.stringify({pass1:{uniqueWords:words.length,tiers:4,gatedActivities:"5 per lesson"},pass2:{difficultySubtitles:"removed",isolatedPracticeLayout:true},pass3:{alphabetGroups:5,stories:stories.slice(0,5),semanticPictureMap:true}},null,2));

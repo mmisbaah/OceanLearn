@@ -26,5 +26,5 @@ for(const p of [2,3,4,5,6]){
 const mapped=[];for(let grade=1;grade<=5;grade++)mapped.push(curriculum.stageIndex(grade,"medium"));
 if(JSON.stringify(mapped)!==JSON.stringify([1,2,3,4,5]))throw new Error("Medium progression failed");
 if(curriculum.stageIndex(1,"easy")!==0||curriculum.stageIndex(5,"hard")!==6)throw new Error("Edge progression failed");
-if(!app.includes("useEffect(()=>{setStep(0);setAnswerOpen(false)},[index])"))throw new Error("New lesson reset missing");
+if(!app.includes("setStep(0);setAnswerOpen(false);setPracticeDone(false)")||!app.includes("},[index])"))throw new Error("New lesson reset missing");
 console.log(JSON.stringify({quizQuestions:quizPrompts.size,gameMissions:gamePrompts.size,quizAnswerSample:quizSlots.slice(0,20),gameAnswerSample:gameSlots.slice(0,20),progression:[0,...mapped,6],lessonReset:"sub-lesson 1"},null,2));
