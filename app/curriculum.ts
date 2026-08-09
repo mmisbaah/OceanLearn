@@ -30,6 +30,13 @@ function shuffled(question:CurriculumQuestion,salt:number){
  const options=[...wrong];options.splice(slot,0,question.options[question.answer]);
  return {...question,options,answer:slot};
 }
+function hinted(question:CurriculumQuestion,hint:string):CurriculumQuestion{return {...question,prompt:`${question.prompt}\n💡 Hint: ${hint}`}}
+function quizHint(stage:number){return stage===0?"Look at each picture. Say each word slowly.":stage<3?"Read every choice. Cross out the two that do not fit.":"Find the key word in the question, then compare every choice."}
+function gameHint(game:number,stage:number){
+ const easy=["Say the word. Tap the matching picture.","Look at every letter from left to right.","Hear the word, then find the same one.","Choose the picture that makes the story continue.","Say each choice aloud. Pick the one that sounds right."];
+ const growing=["Match the word to the choice with the same meaning.","Check every letter from the beginning to the end.","Read the clue twice and hunt for its key word.","Choose the event that connects clearly to the story.","Read each sentence aloud and listen for the clear one."];
+ return (stage===0?easy:growing)[game];
+}
 
 const FIRST_ICONS=["🍎","⚽","🐱","🐶","👋","🚪","✅","❌","🙋","👉","🏷️","📘","✏️","🎒","🔴","🔵","1️⃣","2️⃣","🪑","🧍"];
 const FIRST_SAY=["A","B","C","D","hello","goodbye","yes","no","I","you","name","book","pencil","bag","red","blue","one","two","sit","stand"];
@@ -49,7 +56,7 @@ function foundationQuizQuestion(set:number,pos:number,salt:number):CurriculumQue
   {token,prompt:`Hear: ${word}. Tap.`,options:choices,answer:0,explanation:`Well done! Say ${word}.`},
   {token,prompt:`One more! Find ${word}.`,options:choices,answer:0,explanation:`Star work! ${icon} ${word}.`},
  ];
- return shuffled(variants[pos],salt);
+ return hinted(shuffled(variants[pos],salt),quizHint(0));
 }
 
 function foundationGameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
@@ -57,7 +64,7 @@ function foundationGameQuestion(game:number,level:number,pos:number,salt:number)
  const token=`G-${game}-0-${level}-${pos}`,lead=["Match","Build","Race","Story","Fix"][game],tag=`${lead} ${level+1}`;
  const choices=ids.map(i=>FIRST_SAY[i]);
  const prompts=[`${tag}: ${word}.`,`${tag}: Look ${icon}.`,`${tag}: Find ${word}.`,`${tag}: Hear ${word}.`,`${tag}: Last ${word}.`];
- return shuffled({token,prompt:prompts[pos],options:choices,answer:0,explanation:`Yes! ${icon} ${word}.`},salt);
+ return hinted(shuffled({token,prompt:prompts[pos],options:choices,answer:0,explanation:`Yes! ${icon} ${word}.`},salt),gameHint(game,0));
 }
 
 export function quizQuestion(stage:number,set:number,pos:number,salt:number):CurriculumQuestion{
@@ -73,7 +80,7 @@ export function quizQuestion(stage:number,set:number,pos:number,salt:number):Cur
   {token,prompt:`${band} ${set+1}: Choose the best learning sentence for “${word}”.`,options:[`I can explain and use “${word}”.`,`I skip “${word}” without reading.`,`I copy “${word}” but never check it.`],answer:0,explanation:"Explaining and using a word demonstrates understanding."},
   {token,prompt:`${band} ${set+1}: Which answer proves understanding of “${word}”?`,options:[`It means ${meaning}; for example: ${example}`,`It is always the same as “${a[0]}”.`,`It cannot be used in English.`],answer:0,explanation:"A meaning plus an accurate example is strong evidence of understanding."},
  ];
- return shuffled(variants[pos],salt);
+ return hinted(shuffled(variants[pos],salt),quizHint(stage));
 }
 
 export function gameQuestion(game:number,stage:number,level:number,pos:number,salt:number):CurriculumQuestion{
@@ -114,5 +121,5 @@ export function gameQuestion(game:number,stage:number,level:number,pos:number,sa
    {token,prompt:`Final reef repair: complete “I can use ${word} ...”`,options:[`to communicate ${meaning}.`,`without knowing any meaning.`,`by placing words in random order.`],answer:0,explanation:"Grammar and meaning work together to communicate."},
   ]
  ];
- return shuffled(banks[game][pos],salt);
+ return hinted(shuffled(banks[game][pos],salt),gameHint(game,stage));
 }
