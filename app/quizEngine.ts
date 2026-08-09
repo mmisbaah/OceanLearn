@@ -1,5 +1,6 @@
 import {STAGES,quizQuestion as multipleChoiceQuestion,type CurriculumQuestion} from "./curriculum";
 import {quizVocabulary} from "./vocabulary";
+import {maldivianQuizPassage} from "./storyEngine";
 
 export type QuestionType="dictation"|"multiple-choice"|"fill-blank"|"reading-comprehension";
 export type QuizQuestion=CurriculumQuestion&{type:QuestionType;audioText?:string;passage?:string;acceptedAnswers?:string[];placeholder?:string};
@@ -22,7 +23,7 @@ export function generateQuizQuestion(stage:number,set:number,pos:number,salt:num
  if(type==="fill-blank")return {type,token,prompt:`Set ${set+1}: Aminath sees a ___ near the island.`,acceptedAnswers:[word],placeholder:"Type the missing word",options:[],answer:0,explanation:`The missing word is “${word}”.`};
  if(type==="reading-comprehension"){
   const other=STAGES[stage].words[(set+7)%20][0],third=STAGES[stage].words[(set+13)%20][0];
-  const passage=learnerGrade===3?`Aminath and Hassan travel in a dhoni. Near the reef, they notice a ${word}. They tell their teacher what they observed.`:`Aminath records island life beside the lagoon. She observes a ${word} near the reef and writes a clear note. Hassan checks the detail before they share their report.`;
+  const passage=maldivianQuizPassage(stage,set,pos,word);
   const base:QuizQuestion={type,token,prompt:`Set ${set+1}: What did the children notice?`,passage,options:[word,other,third],answer:0,explanation:`The passage says they noticed “${word}”.`};
   const mixed=multipleChoiceQuestion(stage,set,4,salt);const answer=mixed.answer;
   const wrong=mixed.options.filter((_,i)=>i!==answer).map((_,i)=>[other,third][i]);

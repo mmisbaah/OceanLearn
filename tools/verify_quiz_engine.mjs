@@ -1,10 +1,11 @@
 import fs from "node:fs";
 const engine=fs.readFileSync(new URL("../app/quizEngine.ts",import.meta.url),"utf8");
 const app=fs.readFileSync(new URL("../app/OceanLearnApp.tsx",import.meta.url),"utf8");
+const stories=fs.readFileSync(new URL("../app/storyEngine.ts",import.meta.url),"utf8");
 const plans={1:["dictation","multiple-choice","dictation","multiple-choice","multiple-choice"],2:["dictation","multiple-choice","fill-blank","dictation","fill-blank"],3:["reading-comprehension","dictation","fill-blank","reading-comprehension","multiple-choice"]};
 if(plans[1].some(t=>!new Set(["dictation","multiple-choice"]).has(t)))throw new Error("Pass 1: Grade 1 contains a disallowed type");
 if(!["dictation","multiple-choice","fill-blank","reading-comprehension"].every(t=>plans[3].includes(t)))throw new Error("Pass 1: Grade 3 lacks a required type");
 for(const [grade,plan] of Object.entries(plans))if(new Set(plan).size<2)throw new Error(`Pass 2: Grade ${grade} plan is uniform`);
-if(!/Aminath/.test(engine)||!/Hassan/.test(engine)||!/dhoni/.test(engine)||!/reef/.test(engine)||!/lagoon/.test(engine))throw new Error("Pass 3: Maldivian context missing");
+if(!/Aminath/.test(stories)||!/Hassan/.test(stories)||!/dhoni/.test(stories)||!/reef/.test(stories)||!/lagoon/.test(stories))throw new Error("Pass 3: Maldivian context missing");
 if(!app.includes("quiz-passage")||!app.includes("dictation-player")||!app.includes("typed-answer"))throw new Error("Pass 3: quiz layouts missing");
 console.log(JSON.stringify({pass1:{grade1:plans[1],grade3:plans[3]},pass2:"Every plan mixes at least two types",pass3:"Maldivian contexts and isolated quiz layouts present"},null,2));
