@@ -4,7 +4,7 @@ const css=fs.readFileSync(new URL("../app/v8.css",import.meta.url),"utf8");
 const words=src.match(/const FIRST_100_WORDS=\[(.*?)\];/s)?.[1].match(/"[^"]+"/g)??[];
 if(words.length!==100||new Set(words).size!==100)throw new Error("Pass 1: source lexicon must contain 100 unique words before the Grade 1 Easy 50-word allocation");
 if(!src.includes('name:"Alphabet Foundations"')||!src.includes('name:"Basic Phonetics"')||!src.includes('name:"Maldivian Environment Words"')||!src.includes('name:"Common Words to 50"'))throw new Error("Pass 1: four tiers missing");
-if(!src.includes("disabled={!!foundation&&!practiceDone}"))throw new Error("Pass 1: lesson progression is not gated by practice");
+if(!src.includes("disabled={stage===0&&!practiceDone}"))throw new Error("Pass 1: beginner lesson progression is not gated by picture practice");
 for(const text of ["Gentle AI starter","Previous grade","Your grade","Next grade"])if(src.includes(text))throw new Error(`Pass 2: old difficulty subtitle remains: ${text}`);
 if(!css.includes(".inline-practice")||!css.includes(".read-learn"))throw new Error("Pass 2: interactive/story layouts missing");
 for(const group of ["A","F","K","P","U"])if(!src.includes(`letters:["${group}`))throw new Error(`Pass 3: alphabet group ${group} missing`);

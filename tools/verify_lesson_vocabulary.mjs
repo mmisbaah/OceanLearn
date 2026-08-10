@@ -13,4 +13,7 @@ for(let stage=0;stage<7;stage++){
 }
 for(const word of stageVocabulary(0)){const visual=wordVisual(word);assert.ok(visual.icon&&visual.picture&&visual.meaning,`Grade 1 visual missing: ${word}`)}
 const app=fs.readFileSync(new URL("../app/OceanLearnApp.tsx",import.meta.url),"utf8");assert.match(app,/word-deck-stage-/);assert.match(app,/stage>0&&<p>/,"Grade 1 Easy should not show definition paragraphs");
+assert.match(app,/detail\.paragraphs=stage===0\?\[\]/,"Grade 1 Easy still renders explanation paragraphs");
+assert.match(app,/stage===0\?\(practiceDone\?</,"Grade 1 Easy still renders the advanced practice block");
+assert.doesNotMatch(app,/\{foundation&&<section className="read-learn"/,"Grade 1 Easy still renders long stories");
 console.log("Lesson vocabulary verified: all 2,150 stage allocations are taught; Grade 1 Easy has 50 complete picture clues.");
