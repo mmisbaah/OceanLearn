@@ -11,5 +11,6 @@ const WORD_BLOCKS=[
 
 export const MASTER_VOCABULARY=[...new Map(WORD_BLOCKS.flatMap(block=>block.split(/\s+/)).filter(Boolean).map(word=>[word.toLowerCase(),word])).values()];
 export function stageVocabulary(stage:number){return MASTER_VOCABULARY.slice(0,VOCABULARY_TARGETS[stage])}
-export function lessonVocabulary(stage:number,lesson:number,lessonCount=20){const words=stageVocabulary(stage),size=Math.ceil(words.length/lessonCount);return words.slice(lesson*size,Math.min(words.length,(lesson+1)*size))}
+export function lessonVocabulary(stage:number,lesson:number,lessonCount=20){const words=stageVocabulary(stage),start=Math.floor(lesson*words.length/lessonCount),end=Math.floor((lesson+1)*words.length/lessonCount);return words.slice(start,end)}
+export function lessonStepVocabulary(stage:number,lesson:number,step:number,lessonCount=20){const words=lessonVocabulary(stage,lesson,lessonCount);if(words.length<=5)return words.length?[words[step%words.length]]:[];const start=Math.floor(step*words.length/5),end=Math.floor((step+1)*words.length/5);return words.slice(start,end)}
 export function quizVocabulary(stage:number,set:number,position:number){const words=stageVocabulary(stage),slot=set*5+position;return words[Math.floor(slot*words.length/100)%words.length]}
