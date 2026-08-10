@@ -180,11 +180,11 @@ function speak(text:string){
  if(typeof window==="undefined"||!("speechSynthesis" in window))return;
  window.speechSynthesis.cancel();const voice=new SpeechSynthesisUtterance(text.replace(/[^ -~]/g," "));voice.lang="en-US";voice.rate=.72;window.speechSynthesis.speak(voice);
 }
-const DICTATION_SPEECH=[{age:5,rate:.58,pitch:1.06},{age:6,rate:.64,pitch:1.05},{age:7,rate:.70,pitch:1.04},{age:8,rate:.76,pitch:1.03},{age:9,rate:.82,pitch:1.02},{age:10,rate:.87,pitch:1.01},{age:11,rate:.92,pitch:1}];
+const DICTATION_SPEECH=[{age:5,normalRate:.68,slowRate:.30,pitch:1.06},{age:6,normalRate:.73,slowRate:.34,pitch:1.05},{age:7,normalRate:.78,slowRate:.38,pitch:1.04},{age:8,normalRate:.83,slowRate:.42,pitch:1.03},{age:9,normalRate:.88,slowRate:.46,pitch:1.02},{age:10,normalRate:.93,slowRate:.50,pitch:1.01},{age:11,normalRate:.98,slowRate:.54,pitch:1}];
 const FEMALE_VOICE_NAMES=/female|zira|samantha|victoria|karen|hazel|susan|fiona|moira|tessa|sonia|libby|aria|ava|emma|jenny|salli|joanna/i;
 function speakDictation(text:string,stage:number,slower=false){
  if(typeof window==="undefined"||!("speechSynthesis" in window))return;
- const profile=DICTATION_SPEECH[Math.min(6,Math.max(0,stage))],voices=window.speechSynthesis.getVoices(),female=voices.find(item=>/^en-GB/i.test(item.lang)&&FEMALE_VOICE_NAMES.test(item.name))??voices.find(item=>FEMALE_VOICE_NAMES.test(item.name))??voices.find(item=>/^en-GB/i.test(item.lang));window.speechSynthesis.cancel();const voice=new SpeechSynthesisUtterance(text.trim());voice.lang="en-GB";if(female)voice.voice=female;voice.rate=slower?Math.max(.42,profile.rate-.16):profile.rate;voice.pitch=profile.pitch;voice.volume=1;window.speechSynthesis.speak(voice);
+ const profile=DICTATION_SPEECH[Math.min(6,Math.max(0,stage))],voices=window.speechSynthesis.getVoices(),female=voices.find(item=>/^en-GB/i.test(item.lang)&&FEMALE_VOICE_NAMES.test(item.name))??voices.find(item=>FEMALE_VOICE_NAMES.test(item.name))??voices.find(item=>/^en-GB/i.test(item.lang));window.speechSynthesis.cancel();const voice=new SpeechSynthesisUtterance(text.trim());voice.lang="en-GB";if(female)voice.voice=female;voice.rate=slower?profile.slowRate:profile.normalRate;voice.pitch=profile.pitch;voice.volume=1;window.speechSynthesis.speak(voice);
 }
 
 function DictationControls({text,stage}:{text:string;stage:number}){return <div className="dictation-speeds" aria-label="Dictation speed"><button className="dictation-player" onClick={()=>speakDictation(text,stage,false)}>🔊 Hear</button><button className="dictation-player slower" onClick={()=>speakDictation(text,stage,true)}>🐢 Hear slower</button></div>}
