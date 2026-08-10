@@ -95,3 +95,16 @@ export function assessmentWord(stage:number,level:number,position:number,channel
  const words=assessmentVocabulary(stage,level);
  return words[(level*11+position*7+channel*13)%words.length];
 }
+
+const DICTATION_WORDS={
+ short:["am","an","at","big","boy","bus","can","cat","cup","day","dog","ear","eat","egg","fin","go","hat","hen","hot","leg","log","man","map","mat","net","pen","pig","red","run","sea","sit","sun","top","two","van","yes","you"],
+ four:["book","ball","bird","boat","blue","clap","crab","door","fish","gift","good","home","jump","kind","look","moon","name","palm","play","rain","read","reef","sand","shoe","star","tree","wave","wind"],
+ six:["beach","chair","child","cloud","colour","dhoni","dress","family","father","flower","friend","garden","happy","house","island","lagoon","listen","mango","mother","ocean","pencil","school","shell","sister","turtle","water","yellow","banana","market"],
+ eight:["birthday","careful","captain","children","dolphin","evening","fishing","football","friendly","holiday","hospital","journey","library","morning","rainbow","relative","seashell","sunshine","swimmer","village","weather","weekend","welcome","starfish","sandbank"],
+ five:["adventure","beautiful","celebrate","community","discover","festival","friendship","important","islander","memories","ocean","protect","respect","sailing","tradition","visitor","wildlife","wonder","storyteller","lighthouse","sandcastle","fisher","grandmother","grandfather","environment"]
+} as const;
+
+export function dictationWord(stage:number,level:number,position:number,channel=0){
+ const pool=stage===0?(level<14?DICTATION_WORDS.short:[...DICTATION_WORDS.short,...DICTATION_WORDS.four]):stage<=2?[...DICTATION_WORDS.short,...DICTATION_WORDS.four,...DICTATION_WORDS.six]:stage<=4?[...DICTATION_WORDS.four,...DICTATION_WORDS.six,...DICTATION_WORDS.eight]:[...DICTATION_WORDS.six,...DICTATION_WORDS.eight,...DICTATION_WORDS.five];
+ return pool[(level*11+position*7+channel*17+stage*13)%pool.length];
+}

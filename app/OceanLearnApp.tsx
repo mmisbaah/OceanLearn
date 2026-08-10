@@ -281,6 +281,7 @@ function GamePlayer({game,level,stage,onBack,onWin,onNext}:{game:number;level:nu
   const[pos,setPos]=useState(0);const[choice,setChoice]=useState<number|null>(null);const[checked,setChecked]=useState(false);const[score,setScore]=useState(0);const[streak,setStreak]=useState(0);const[salt]=useState(()=>Math.floor(Math.random()*2**31));const q=gameQuestion(game,stage,level,pos,salt);
   useEffect(()=>{scrollTop()},[level,pos]);
   useEffect(()=>{setChoice(null);setChecked(false)},[q.token]);
+  useEffect(()=>{if(q.audioText)speakDictation(q.audioText,stage)},[q.token,q.audioText,stage]);
   useEffect(()=>{if(!checked||pos===4)return;const timer=window.setTimeout(()=>{setPos(p=>p+1);setChoice(null);setChecked(false)},1250);return()=>window.clearTimeout(timer)},[checked,pos]);
   const choose=(i:number)=>{if(checked)return;setChoice(i);setChecked(true);if(i===q.answer){setScore(s=>s+1);setStreak(s=>s+1)}else setStreak(0)};
   const retry=()=>{setPos(0);setChoice(null);setChecked(false);setScore(0);setStreak(0);scrollTop()};
