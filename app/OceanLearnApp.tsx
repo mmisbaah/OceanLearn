@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { STAGES, stageIndex, gameQuestion, type CurriculumQuestion as Question } from "./curriculum";
 import {generateQuizQuestion,type QuizQuestion} from "./quizEngine";
-import {lessonVocabulary,lessonStepVocabulary,VOCABULARY_TARGETS} from "./vocabulary";
+import {assessmentLessonCount,assessmentPhaseLabel,lessonPhase,lessonVocabulary,lessonStepVocabulary,VOCABULARY_TARGETS} from "./vocabulary";
 import {maldivianLessonParagraphs,maldivianLessonStory} from "./storyEngine";
 import {wordVisual} from "./wordVisuals";
 
@@ -224,7 +224,7 @@ function Dashboard({student,progress,go}:{student:Student;progress:Progress;go:(
 function LessonLibrary({student,progress,award}:{student:Student;progress:Progress;award:(id:string,n?:number)=>void}){
  const stage=curriculumStage(student),lessons=lessonsForStage(stage);const[lesson,setLesson]=useState<number|null>(null);
  const finish=()=>{if(lesson===null)return;award(`lesson-${stage}-${lesson}`,5);setLesson(lesson<lessons.length-1?lesson+1:null)};
- return <section><PageTitle eyebrow={STAGES[stage].label.toUpperCase()} title="Learning Lagoon" text={`${lessons.length} lessons share a ${VOCABULARY_TARGETS[stage]}-word mastery path with quizzes. ${STAGES[stage].support}.`}/>{lesson===null?<div className="curriculum-grid">{lessons.map((name,i)=>{const done=progress.completed.includes(`lesson-${stage}-${i}`),words=lessonVocabulary(stage,i,lessons.length);return <button className="curriculum-card" key={name} onClick={()=>setLesson(i)}><span>{done?"✓":i+1}</span><div><small>{i<Math.ceil(lessons.length/2)?"TERM 1":"TERM 2"} • {SKILLS[i%5]}</small><strong>{name}</strong><em>5 sub-lessons • {words.length} focus words</em></div></button>})}</div>:<LessonPlayer stage={stage} index={lesson} onBack={()=>setLesson(null)} onComplete={finish}/>}</section>
+ return <section><PageTitle eyebrow={STAGES[stage].label.toUpperCase()} title="Learning Lagoon" text={`${lessons.length} lessons form three progressive phases in a ${VOCABULARY_TARGETS[stage]}-word mastery path. ${STAGES[stage].support}.`}/>{lesson===null?<div className="lesson-phases">{[1,2,3].map(phase=><section className={`lesson-phase phase-${phase}`} key={phase}><header><span>PHASE {phase}</span><h2>{phase===1?"Start":phase===2?"Grow":"Master"}</h2></header><div className="curriculum-grid">{lessons.map((name,i)=>({name,i})).filter(item=>lessonPhase(stage,item.i)===phase).map(({name,i})=>{const done=progress.completed.includes(`lesson-${stage}-${i}`),words=lessonVocabulary(stage,i,lessons.length);return <button className="curriculum-card" key={name} onClick={()=>setLesson(i)}><span>{done?"✓":i+1}</span><div><small>PHASE {phase} • {SKILLS[i%5]}</small><strong>{name}</strong><em>5 sub-lessons • {words.length} focus words</em></div></button>})}</div></section>)}</div>:<LessonPlayer stage={stage} index={lesson} onBack={()=>setLesson(null)} onComplete={finish}/>}</section>
 }
 
 function InlinePractice({activity,onSolved}:{activity:FoundationActivity;onSolved:()=>void}){
@@ -250,7 +250,7 @@ function LessonPlayer({stage,index,onBack,onComplete}:{stage:number;index:number
 
 function QuizLibrary({student,progress,award}:{student:Student;progress:Progress;award:(id:string,n?:number)=>void}){
  const stage=curriculumStage(student);const[set,setSet]=useState<number|null>(null);
- return <section><PageTitle eyebrow={STAGES[stage].label.toUpperCase()} title="Quiz Cove" text="Twenty mixed quiz sets with five curriculum questions in every set."/>{set===null?<div className="level-grid">{Array.from({length:20},(_,i)=><button key={i} className={progress.completed.includes(`quiz-${stage}-${i}`)?"level done":"level"} onClick={()=>setSet(i)}><strong>{i+1}</strong><span>Quiz set</span><small>{i<7?"Foundation":i<14?"Application":"Challenge"} • Mixed types</small></button>)}</div>:<QuizPlayer grade={student.grade} stage={stage} set={set} onBack={()=>setSet(null)} onComplete={()=>award(`quiz-${stage}-${set}`,8)}/>}</section>
+ return <section><PageTitle eyebrow={STAGES[stage].label.toUpperCase()} title="Quiz Cove" text="Twenty cumulative quiz levels: Phase 1, then Phases 1–2, then the complete curriculum."/>{set===null?<div className="level-grid">{Array.from({length:20},(_,i)=><button key={i} className={progress.completed.includes(`quiz-${stage}-${i}`)?"level done":"level"} onClick={()=>setSet(i)}><strong>{i+1}</strong><span>Quiz level</span><small>{assessmentPhaseLabel(i)} • {assessmentLessonCount(stage,i)} lessons</small></button>)}</div>:<QuizPlayer grade={student.grade} stage={stage} set={set} onBack={()=>setSet(null)} onComplete={()=>award(`quiz-${stage}-${set}`,8)}/>}</section>
 }
 
 function QuestionPrompt({prompt}:{prompt:string}){
@@ -272,7 +272,7 @@ function GameLibrary({student,progress,award}:{student:Student;progress:Progress
   const[game,setGame]=useState<number|null>(null);const[level,setLevel]=useState<number|null>(null);const stage=curriculumStage(student);const grade=STAGES[stage].grade;
   useEffect(()=>{scrollTop()},[game,level]);
   if(game!==null&&level!==null)return <GamePlayer key={`${game}-${stage}-${level}`} game={game} level={level} stage={stage} onBack={()=>setLevel(null)} onWin={()=>award(`game-${game}-${stage}-${level}`,8)} onNext={()=>setLevel(level<19?level+1:null)}/>;
-  if(game!==null)return <section><button className="back-button" onClick={()=>setGame(null)}>← All games</button><PageTitle eyebrow={`20 PLAYABLE LEVELS • ${STAGES[stage].label.toUpperCase()}`} title={GAME_META[game].name} text={GAME_META[game].description}/><div className="level-grid">{Array.from({length:20},(_,i)=><button key={i} className={progress.completed.includes(`game-${game}-${stage}-${i}`)?"level done":"level"} onClick={()=>setLevel(i)}><strong>{i+1}</strong><span>Level</span><small>{i<7?"Foundation":i<14?"Application":"Challenge"} • 5 missions</small></button>)}</div></section>;
+  if(game!==null)return <section><button className="back-button" onClick={()=>setGame(null)}>← All games</button><PageTitle eyebrow={`20 PLAYABLE LEVELS • ${STAGES[stage].label.toUpperCase()}`} title={GAME_META[game].name} text={`${GAME_META[game].description} Each level adds more lesson phases.`}/><div className="level-grid">{Array.from({length:20},(_,i)=><button key={i} className={progress.completed.includes(`game-${game}-${stage}-${i}`)?"level done":"level"} onClick={()=>setLevel(i)}><strong>{i+1}</strong><span>Level</span><small>{assessmentPhaseLabel(i)} • {assessmentLessonCount(stage,i)} lessons</small></button>)}</div></section>;
   return <section><PageTitle eyebrow={`GRADE ${grade} • PLAY TO LEARN`} title="Game Reef" text="Five real games, twenty levels each, and five questions per level."/><div className="game-grid">{GAME_META.map((g,i)=><button className={`game-card game-${i+1}`} key={g.name} onClick={()=>setGame(i)}><div className="game-cover" aria-hidden="true"><span>{g.art}</span><b>{g.props}</b><i>〰️</i></div><div><span className="pill">20 × 5 QUESTIONS</span><h3>{g.name}</h3><p>{g.description}</p><strong>Choose levels →</strong></div></button>)}</div></section>
 }
 

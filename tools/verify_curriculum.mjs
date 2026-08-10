@@ -1,9 +1,5 @@
 import fs from "node:fs";
-import ts from "typescript";
-
-const source=fs.readFileSync(new URL("../app/curriculum.ts",import.meta.url),"utf8");
-const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
-const curriculum=await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
+const curriculum=await import("../app/curriculum.ts");
 const app=fs.readFileSync(new URL("../app/OceanLearnApp.tsx",import.meta.url),"utf8");
 
 const quizPrompts=new Set(),gamePrompts=new Set();

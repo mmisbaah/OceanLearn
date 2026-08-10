@@ -40,6 +40,23 @@ function gameHint(game:number,stage:number){
 
 const FIRST_ICONS=["🍎","⚽","🐱","🐶","👋","🚪","✅","❌","🙋","👉","🏷️","📘","✏️","🎒","🔴","🔵","1️⃣","2️⃣","🪑","🧍"];
 const FIRST_SAY=["A","B","C","D","hello","goodbye","yes","no","I","you","name","book","pencil","bag","red","blue","one","two","sit","stand"];
+const FOUNDATION_LETTERS=[
+ ["A","apple","🍎"],["B","ball","⚽"],["C","cat","🐱"],["D","dog","🐶"],["E","egg","🥚"],["F","fish","🐟"],["G","gift","🎁"],["H","house","🏠"],["I","island","🏝️"],["J","juice","🧃"],["K","key","🔑"],["L","lion","🦁"],["M","moon","🌙"],["N","nest","🪺"],["O","octopus","🐙"],["P","palm","🌴"],["Q","queen","👑"],["R","rabbit","🐇"],["S","sun","☀️"],["T","turtle","🐢"],["U","umbrella","☂️"],["V","van","🚐"],["W","wave","🌊"],["X","x-ray","🩻"],["Y","yo-yo","🪀"],["Z","zebra","🦓"],
+] as const;
+const FOUNDATION_GROUP_ENDS=[5,10,15,20,26];
+
+function foundationLettersForLevel(level:number){const lessons=assessmentLessonCount(0,Math.min(level,6));return FOUNDATION_LETTERS.slice(0,FOUNDATION_GROUP_ENDS[Math.min(4,lessons-1)])}
+export function curriculumFocusEntry(stage:number,level:number,position:number,channel=0):[string,string,string]{
+ const word=assessmentWord(stage,level,position,channel),known=STAGES[stage].words.find(([item])=>item.toLowerCase()===word.toLowerCase());
+ if(known)return known;
+ const visual=wordVisual(word);return [word,visual.meaning,`We learn and use “${word}” in ${assessmentPhaseLabel(level)}.`];
+}
+function curriculumDistractorEntry(stage:number,level:number,exclude:string[],offset:number):[string,string,string]{
+ const pool=assessmentVocabulary(stage,level).filter(word=>!exclude.some(item=>item.toLowerCase()===word.toLowerCase())),word=pool[offset%pool.length];
+ const known=STAGES[stage].words.find(([item])=>item.toLowerCase()===word.toLowerCase());
+ if(known)return known;
+ const visual=wordVisual(word);return [word,visual.meaning,`We learn and use “${word}” in ${assessmentPhaseLabel(level)}.`];
+}
 
 function firstChoices(set:number){
  const a=set,b=(set+7)%20,c=(set+13)%20;
@@ -47,31 +64,44 @@ function firstChoices(set:number){
 }
 
 function foundationQuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
- const ids=firstChoices(set),word=FIRST_SAY[set],icon=FIRST_ICONS[set],token=`Q-0-${set}-${pos}`;
- const choices=ids.map(i=>FIRST_SAY[i]);
+ if(set<7){
+  const letters=foundationLettersForLevel(set),target=letters[(set*5+pos)%letters.length],other=letters[(set*5+pos+7)%letters.length],third=letters[(set*5+pos+13)%letters.length],token=`Q-0-${set}-${pos}`;
+  const variants:CurriculumQuestion[]=[
+   {token,prompt:`Level ${set+1}: Which object starts with ${target[0]}?`,options:[`${target[2]} ${target[1]}`,`${other[2]} ${other[1]}`,`${third[2]} ${third[1]}`],answer:0,explanation:`${target[0]} is for ${target[1]}.`},
+   {token,prompt:`Level ${set+1}: Tap the letter for ${target[2]} ${target[1]}.`,options:[target[0],other[0],third[0]],answer:0,explanation:`${target[1]} starts with ${target[0]}.`},
+   {token,prompt:`Level ${set+1}: Find ${target[0]} for ${target[1]}.`,options:[`${target[0]} ${target[2]}`,`${other[0]} ${other[2]}`,`${third[0]} ${third[2]}`],answer:0,explanation:`${target[0]} and ${target[1]} match.`},
+   {token,prompt:`Level ${set+1}: Which word begins with ${target[0]}?`,options:[target[1],other[1],third[1]],answer:0,explanation:`${target[1]} begins with ${target[0]}.`},
+   {token,prompt:`Level ${set+1}: Match the picture to ${target[0]}.`,options:[`${target[2]} ${target[1]}`,`${other[2]} ${other[1]}`,`${third[2]} ${third[1]}`],answer:0,explanation:`Great! ${target[0]} is for ${target[1]}.`},
+  ];
+  return hinted(shuffled(variants[pos],salt),`Say ${target[0]}, then say ${target[1]}. Listen for the first sound.`);
+ }
+ const pool=assessmentVocabulary(0,set),word=assessmentWord(0,set,pos),other=pool[(pool.indexOf(word)+7)%pool.length],third=pool[(pool.indexOf(word)+13)%pool.length],visual=wordVisual(word),token=`Q-0-${set}-${pos}`;
+ const choices=[word,other,third];
  const variants:CurriculumQuestion[]=[
-  {token,prompt:`Look. Tap ${word}.`,options:choices,answer:0,explanation:`Yes! ${icon} ${word}.`},
-  {token,prompt:`Find the same: ${word}`,options:choices,answer:0,explanation:`Great! You found ${word}.`},
-  {token,prompt:`${icon} is ...`,options:ids.map(i=>FIRST_SAY[i]),answer:0,explanation:`${icon} is ${word}.`},
-  {token,prompt:`Hear: ${word}. Tap.`,options:choices,answer:0,explanation:`Well done! Say ${word}.`},
-  {token,prompt:`One more! Find ${word}.`,options:choices,answer:0,explanation:`Star work! ${icon} ${word}.`},
+  {token,prompt:`Level ${set+1}: Look and tap ${word}.`,options:choices,answer:0,explanation:`Yes! ${word}.`},
+  {token,prompt:`Level ${set+1}: Find the same word: ${word}.`,options:choices,answer:0,explanation:`Great! You found ${word}.`},
+  {token,prompt:`Level ${set+1}: Which word matches “${visual.picture}”?`,options:choices,answer:0,explanation:`The picture shows ${word}.`},
+  {token,prompt:`Level ${set+1}: Hear ${word}. Tap it.`,options:choices,answer:0,explanation:`Well done! Say ${word}.`},
+  {token,prompt:`Level ${set+1}: Find ${word} one more time.`,options:choices,answer:0,explanation:`Star work! ${word}.`},
  ];
  return hinted(shuffled(variants[pos],salt),quizHint(0));
 }
 
 function foundationGameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
- const target=(level+game*4)%20,ids=[target,(target+6)%20,(target+11)%20],word=FIRST_SAY[target],icon=FIRST_ICONS[target];
- const token=`G-${game}-0-${level}-${pos}`,lead=["Match","Build","Race","Story","Fix"][game],tag=`${lead} ${level+1}`;
- const choices=ids.map(i=>FIRST_SAY[i]);
- const prompts=[`${tag}: ${word}.`,`${tag}: Look ${icon}.`,`${tag}: Find ${word}.`,`${tag}: Hear ${word}.`,`${tag}: Last ${word}.`];
- return hinted(shuffled({token,prompt:prompts[pos],options:choices,answer:0,explanation:`Yes! ${icon} ${word}.`},salt),gameHint(game,0));
+ if(level<7){
+  const letters=foundationLettersForLevel(level),target=letters[(level*5+pos+game)%letters.length],other=letters[(level*5+pos+game+7)%letters.length],third=letters[(level*5+pos+game+13)%letters.length],token=`G-${game}-0-${level}-${pos}`;
+  const prompts=[`Letter pearl ${level+1}.${pos+1}: What starts with ${target[0]}?`,`Sound bee ${level+1}.${pos+1}: Find ${target[0]} for ${target[1]}.`,`Letter race ${level+1}.${pos+1}: Race to ${target[0]}!`,`Picture story ${level+1}.${pos+1}: ${target[2]} starts with ...`,`Letter hero ${level+1}.${pos+1}: Match ${target[0]} and its object.`];
+  const optionModes=[[`${target[2]} ${target[1]}`,`${other[2]} ${other[1]}`,`${third[2]} ${third[1]}`],[target[0],other[0],third[0]],[`${target[0]} ${target[1]}`,`${other[0]} ${other[1]}`,`${third[0]} ${third[1]}`],[target[0],other[0],third[0]],[`${target[0]} ${target[2]}`,`${other[0]} ${other[2]}`,`${third[0]} ${third[2]}`]];
+  return hinted(shuffled({token,prompt:prompts[game],options:optionModes[game],answer:0,explanation:`${target[0]} is for ${target[1]}.`},salt),`Say ${target[0]} and ${target[1]}. Listen to the first sound.`);
+ }
+ const pool=assessmentVocabulary(0,level),word=assessmentWord(0,level,pos,game),at=pool.indexOf(word),other=pool[(at+7)%pool.length],third=pool[(at+13)%pool.length],token=`G-${game}-0-${level}-${pos}`;
+ return hinted(shuffled({token,prompt:`${assessmentPhaseLabel(level)} • Level ${level+1} • Mission ${pos+1}: Find ${word}.`,options:[word,other,third],answer:0,explanation:`Yes! The word is ${word}.`},salt),gameHint(game,0));
 }
 
 export function quizQuestion(stage:number,set:number,pos:number,salt:number):CurriculumQuestion{
  if(stage===0)return foundationQuizQuestion(set,pos,salt);
- const s=STAGES[stage], [word,meaning,example]=s.words[set];
- const a=s.words[(set+7)%20],b=s.words[(set+13)%20];
- const band=set<7?"Foundation":set<14?"Application":"Challenge";
+ const [word,meaning,example]=curriculumFocusEntry(stage,set,pos),a=curriculumDistractorEntry(stage,set,[word],pos+1),b=curriculumDistractorEntry(stage,set,[word,a[0]],pos+3);
+ const band=`Path ${stage+1} • ${assessmentPhaseLabel(set)}`;
  const token=`Q-${stage}-${set}-${pos}`;
  const variants:CurriculumQuestion[]=[
   {token,prompt:`${band} ${set+1}: What does “${word}” mean?`,options:[meaning,a[1],b[1]],answer:0,explanation:`“${word}” means ${meaning}.`},
@@ -85,8 +115,7 @@ export function quizQuestion(stage:number,set:number,pos:number,salt:number):Cur
 
 export function gameQuestion(game:number,stage:number,level:number,pos:number,salt:number):CurriculumQuestion{
  if(stage===0)return foundationGameQuestion(game,level,pos,salt);
- const s=STAGES[stage], idx=level%20,[word,meaning,example]=s.words[idx];
- const x=s.words[(idx+5)%20],y=s.words[(idx+11)%20],token=`G-${game}-${stage}-${level}-${pos}`;
+ const [word,meaning,example]=curriculumFocusEntry(stage,level,pos,game),x=curriculumDistractorEntry(stage,level,[word],pos+game+1),y=curriculumDistractorEntry(stage,level,[word,x[0]],pos+game+3),token=`G-${game}-${stage}-${level}-${pos}`;
  const miss=word.length>2?word.slice(0,-1):word+"x",first=word[0].toUpperCase();
  const letterChoices=[first,x[0][0].toUpperCase(),y[0][0].toUpperCase(),..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].filter((letter,i,all)=>all.indexOf(letter)===i).slice(0,3);
  const banks:CurriculumQuestion[][]=[
@@ -122,5 +151,8 @@ export function gameQuestion(game:number,stage:number,level:number,pos:number,sa
    {token,prompt:`Final reef repair: complete “I can use ${word} ...”`,options:[`to communicate ${meaning}.`,`without knowing any meaning.`,`by placing words in random order.`],answer:0,explanation:"Grammar and meaning work together to communicate."},
   ]
  ];
- return hinted(shuffled(banks[game][pos],salt),gameHint(game,stage));
+ const selected=banks[game][pos];
+ return hinted(shuffled({...selected,prompt:`Path ${stage+1} • Level ${level+1} • Mission ${pos+1}: ${selected.prompt}`},salt),gameHint(game,stage));
 }
+import {assessmentLessonCount,assessmentPhaseLabel,assessmentVocabulary,assessmentWord} from "./vocabulary.ts";
+import {wordVisual} from "./wordVisuals.ts";

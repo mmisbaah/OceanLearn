@@ -77,3 +77,21 @@ export function lessonVocabulary(stage:number,lesson:number,lessonCount=20){
 }
 export function lessonStepVocabulary(stage:number,lesson:number,step:number,lessonCount=20){const words=lessonVocabulary(stage,lesson,lessonCount);if(words.length<=5)return words.length?[words[step%words.length]]:[];const start=Math.floor(step*words.length/5),end=Math.floor((step+1)*words.length/5);return words.slice(start,end)}
 export function quizVocabulary(stage:number,set:number,position:number){const words=stageVocabulary(stage),slot=set*5+position;return words[Math.floor(slot*words.length/100)%words.length]}
+
+export function assessmentPhase(level:number){return level<7?1:level<14?2:3}
+export function assessmentPhaseLabel(level:number){return level<7?"Phase 1":level<14?"Phases 1 + 2":"All 3 phases"}
+export function lessonPhase(stage:number,lesson:number){const phase1=stage===0?5:6,phase2=stage===0?12:11;return lesson<phase1?1:lesson<phase2?2:3}
+export function assessmentLessonCount(stage:number,level:number){
+ const total=stage===0?20:16,phase1=stage===0?5:6,phase2=stage===0?12:11;
+ if(level<7)return Math.max(1,Math.ceil((level+1)*phase1/7));
+ if(level<14)return phase1+Math.ceil((level-6)*(phase2-phase1)/7);
+ return phase2+Math.ceil((level-13)*(total-phase2)/6);
+}
+export function assessmentVocabulary(stage:number,level:number){
+ const total=stage===0?20:16,count=assessmentLessonCount(stage,level);
+ return [...new Map(Array.from({length:count},(_,lesson)=>lessonVocabulary(stage,lesson,total)).flat().map(word=>[word.toLowerCase(),word])).values()];
+}
+export function assessmentWord(stage:number,level:number,position:number,channel=0){
+ const words=assessmentVocabulary(stage,level);
+ return words[(level*11+position*7+channel*13)%words.length];
+}

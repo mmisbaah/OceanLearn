@@ -10,5 +10,5 @@ for(let stage=0;stage<7;stage++){
  if(quizWords.some(word=>!words.includes(word)))throw new Error(`Stage ${stage} quiz uses an out-of-level word`);
 }
 const engine=(await import("node:fs")).readFileSync(new URL("../app/quizEngine.ts",import.meta.url),"utf8");
-if(!engine.includes("const heard=quizVocabulary(stage,set,pos)")||engine.includes("Type the sentence"))throw new Error("Dictation is not restricted to vocabulary words");
+if(!engine.includes("const heard=assessmentWord(stage,set,pos,4)")||engine.includes("Type the sentence"))throw new Error("Dictation is not restricted to cumulative level vocabulary words");
 console.log(JSON.stringify({targets:VOCABULARY_TARGETS,totalUnique:MASTER_VOCABULARY.length,dictation:"single words only",allocation:"shared by lessons and quizzes"},null,2));
