@@ -88,6 +88,7 @@ export function gameQuestion(game:number,stage:number,level:number,pos:number,sa
  const s=STAGES[stage], idx=level%20,[word,meaning,example]=s.words[idx];
  const x=s.words[(idx+5)%20],y=s.words[(idx+11)%20],token=`G-${game}-${stage}-${level}-${pos}`;
  const miss=word.length>2?word.slice(0,-1):word+"x",first=word[0].toUpperCase();
+ const letterChoices=[first,x[0][0].toUpperCase(),y[0][0].toUpperCase(),..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].filter((letter,i,all)=>all.indexOf(letter)===i).slice(0,3);
  const banks:CurriculumQuestion[][]=[
   [
    {token,prompt:`Meaning pearl: match “${word}”.`,options:[meaning,x[1],y[1]],answer:0,explanation:`“${word}” means ${meaning}.`},
@@ -97,10 +98,10 @@ export function gameQuestion(game:number,stage:number,level:number,pos:number,sa
    {token,prompt:`Treasure proof: which card proves “${word}” is understood?`,options:[`I know it means ${meaning}.`,`I skip the word without reading.`,`I say every word means ${x[1]}.`],answer:0,explanation:"Explaining the accurate meaning proves understanding."},
   ],[
    {token,prompt:`Spelling beacon: build the word meaning “${meaning}”.`,options:[word,miss,word+"e"],answer:0,explanation:`The correct spelling is “${word}”.`},
-   {token,prompt:`First-sound flight: which letter launches “${word}”?`,options:[first,x[0][0].toUpperCase(),y[0][0].toUpperCase()],answer:0,explanation:`“${word}” begins with ${first}.`},
+   {token,prompt:`First-sound flight: which letter launches “${word}”?`,options:letterChoices,answer:0,explanation:`“${word}” begins with ${first}.`},
    {token,prompt:`Missing-piece hive: complete “${miss}_” to make the target word.`,options:[word,miss,x[0]],answer:0,explanation:`The completed word is “${word}”.`},
    {token,prompt:`Word-shape challenge: choose the exact spelling used in this line: ${example}`,options:[word,word+word.slice(-1),miss],answer:0,explanation:`The example uses “${word}”.`},
-   {token,prompt:`Bee check: which spelling matches “${meaning}”?`,options:[word,miss+"e",word+"h"],answer:0,explanation:`“${word}” carries that meaning.`},
+   {token,prompt:`Bee check: which spelling matches “${meaning}”?`,options:[word,miss+"x",word+"h"],answer:0,explanation:`“${word}” carries that meaning.`},
   ],[
    {token,prompt:`Starting flag: race to the word meaning “${meaning}”.`,options:[word,x[0],y[0]],answer:0,explanation:`“${word}” wins the meaning race.`},
    {token,prompt:`Context bend: what word is working in “${example}”?`,options:[word,x[0],y[0]],answer:0,explanation:`The sentence demonstrates “${word}”.`},
