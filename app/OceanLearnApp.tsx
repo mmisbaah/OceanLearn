@@ -170,6 +170,7 @@ function lessonVisuals(topic:string,stage:number,index:number,step:number):Visua
 const PICTURE_WORDS:Array<[RegExp,string]>=[[/apple/i,"🍎"],[/ball/i,"⚽"],[/cat/i,"🐱"],[/dog/i,"🐶"],[/hello|meet/i,"👋"],[/goodbye|leave/i,"🚪"],[/yes|correct|complete/i,"✅"],[/no|wrong|cannot/i,"❌"],[/book|read/i,"📘"],[/pencil|write/i,"✏️"],[/bag/i,"🎒"],[/red/i,"🔴"],[/blue|sea/i,"🔵"],[/one|first/i,"1️⃣"],[/two|second/i,"2️⃣"],[/sit|chair/i,"🪑"],[/stand|feet/i,"🧍"],[/fish/i,"🐟"],[/turtle/i,"🐢"],[/dolphin/i,"🐬"],[/crab/i,"🦀"],[/sun/i,"☀️"],[/rain|cloud/i,"🌧️"],[/family/i,"👨‍👩‍👧"],[/happy/i,"😊"],[/sad/i,"😢"],[/home|house/i,"🏠"],[/island/i,"🏝️"],[/journey|boat/i,"🛶"],[/food|eat/i,"🍌"],[/water|drink/i,"💧"],[/listen|sound|hear/i,"👂"],[/speak|say|word/i,"💬"],[/look|observe|see/i,"👀"],[/compare|contrast/i,"↔️"],[/idea|think|infer/i,"💡"],[/evidence|fact|source/i,"🔎"],[/story|character/i,"📖"],[/order|sequence|next/i,"➡️"],[/reason|because/i,"🧠"]];
 function pictureFor(text:string,stage:number,index=0){
  const letter=LETTER_PICTURES[text.trim().toUpperCase()];if(letter)return letter[0];
+ const alphabetPrompt=text.match(/\b(?:letter|uppercase|lowercase)\s+([A-Z])\b/i);if(alphabetPrompt)return `🔤 ${alphabetPrompt[1].toUpperCase()}`;
  const hit=PICTURE_WORDS.find(([test])=>test.test(text));if(hit)return hit[1];
  return stage<=1?["🐚","⭐","🌴","🐠"][index%4]:stage<=3?["🖼️","🧩","📝","🔤"][index%4]:["🔎","🧠","📊","🗂️"][index%4];
 }

@@ -71,13 +71,13 @@ function foundationQuizQuestion(set:number,pos:number,salt:number):CurriculumQue
  if(set<7){
   const letters=foundationLettersForLevel(set),target=letters[(set*5+pos)%letters.length],other=letters[(set*5+pos+7)%letters.length],third=letters[(set*5+pos+13)%letters.length],token=`Q-0-${set}-${pos}`;
   const variants:CurriculumQuestion[]=[
-   {token,prompt:`Level ${set+1}: Which object starts with ${target[0]}?`,options:[`${target[2]} ${target[1]}`,`${other[2]} ${other[1]}`,`${third[2]} ${third[1]}`],answer:0,explanation:`${target[0]} is for ${target[1]}.`},
-   {token,prompt:`Level ${set+1}: Tap the letter for ${target[2]} ${target[1]}.`,options:[target[0],other[0],third[0]],answer:0,explanation:`${target[1]} starts with ${target[0]}.`},
-   {token,prompt:`Level ${set+1}: Find ${target[0]} for ${target[1]}.`,options:[`${target[0]} ${target[2]}`,`${other[0]} ${other[2]}`,`${third[0]} ${third[2]}`],answer:0,explanation:`${target[0]} and ${target[1]} match.`},
-   {token,prompt:`Level ${set+1}: Which word begins with ${target[0]}?`,options:[target[1],other[1],third[1]],answer:0,explanation:`${target[1]} begins with ${target[0]}.`},
-   {token,prompt:`Level ${set+1}: Match the picture to ${target[0]}.`,options:[`${target[2]} ${target[1]}`,`${other[2]} ${other[1]}`,`${third[2]} ${third[1]}`],answer:0,explanation:`Great! ${target[0]} is for ${target[1]}.`},
+   {token,prompt:`Level ${set+1}: Tap uppercase ${target[0]}.`,options:[target[0],other[0],third[0]],answer:0,explanation:`This is uppercase ${target[0]}.`},
+   {token,prompt:`Level ${set+1}: Find the letter ${target[0]}.`,options:[target[0],other[0],third[0]],answer:0,explanation:`You found ${target[0]}.`},
+   {token,prompt:`Level ${set+1}: Choose ${target[0]}.`,options:[target[0],other[0],third[0]],answer:0,explanation:`This letter is ${target[0]}.`},
+   {token,prompt:`Level ${set+1}: Tap the letter ${target[0]}.`,options:[target[0],other[0],third[0]],answer:0,explanation:`Great! This is ${target[0]}.`},
+   {token,prompt:`Level ${set+1}: Find uppercase ${target[0]}.`,options:[target[0],other[0],third[0]],answer:0,explanation:`Yes! Uppercase ${target[0]}.`},
   ];
-  return hinted(shuffled(variants[pos],salt),`Say ${target[0]}, then say ${target[1]}. Listen for the first sound.`);
+  return hinted(shuffled(variants[pos],salt),`Say the letter ${target[0]} slowly.`);
  }
  const pool=assessmentVocabulary(0,set),word=assessmentWord(0,set,pos),other=pool[(pool.indexOf(word)+7)%pool.length],third=pool[(pool.indexOf(word)+13)%pool.length],visual=wordVisual(word),token=`Q-0-${set}-${pos}`;
  const choices=[word,other,third];

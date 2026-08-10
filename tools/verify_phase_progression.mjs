@@ -31,7 +31,10 @@ for(let level=0;level<7;level++)for(let pos=0;pos<5;pos++){
  if(quiz.type==="dictation"){
   assert.match(quiz.audioText??"",/^[A-Z]$/,`Grade 1 Easy quiz level ${level+1} dictation is not a single letter`);
   assert.match(quiz.prompt,/type the letter/i,`Grade 1 Easy quiz level ${level+1} dictation does not instruct the learner to type a letter`);
- }else assert.match(quiz.prompt,/letter|object|starts|begins|picture/i,`Grade 1 Easy quiz level ${level+1} is not alphabet/object focused`);
+ }else{
+  assert.match(quiz.prompt,/letter|uppercase|choose/i,`Grade 1 Easy quiz level ${level+1} is not alphabet focused`);
+  assert.ok(quiz.options.every(option=>/^[A-Z]$/.test(option)),`Grade 1 Easy quiz level ${level+1} includes a non-letter option`);
+ }
  assert.match(game.prompt,/letter|starts|match|sound/i,`Grade 1 Easy game level ${level+1} is not alphabet/object focused`);
 }
 for(let level=7;level<20;level++)for(let pos=0;pos<5;pos++){
