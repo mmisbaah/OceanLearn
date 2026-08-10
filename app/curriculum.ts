@@ -98,8 +98,8 @@ function foundationGameQuestion(game:number,level:number,pos:number,salt:number)
   const optionModes=[[`${target[2]} ${target[1]}`,`${other[2]} ${other[1]}`,`${third[2]} ${third[1]}`],[target[0],other[0],third[0]],[`${target[0]} ${target[1]}`,`${other[0]} ${other[1]}`,`${third[0]} ${third[1]}`],[target[0],other[0],third[0]],[`${target[0]} ${target[2]}`,`${other[0]} ${other[2]}`,`${third[0]} ${third[2]}`]];
   return hinted(shuffled({token,prompt:prompts[game],options:optionModes[game],answer:0,explanation:`${target[0]} is for ${target[1]}.`},salt),`Say ${target[0]} and ${target[1]}. Listen to the first sound.`);
  }
- const pool=assessmentVocabulary(0,level),word=game===1?dictationWord(0,level,pos,21):assessmentWord(0,level,pos,game),other=pool[(level*5+pos+7)%pool.length],third=pool[(level*5+pos+13)%pool.length],token=`G-${game}-0-${level}-${pos}`;
- return hinted(shuffled({token,prompt:game===1?`${assessmentPhaseLabel(level)} • Level ${level+1} • Mission ${pos+1}: Hear the word. Find it.`:`${assessmentPhaseLabel(level)} • Level ${level+1} • Mission ${pos+1}: Find ${word}.`,options:[word,other,third],answer:0,explanation:`Yes! The word is ${word}.`,audioText:game===1?word:undefined},salt),gameHint(game,0));
+ const isDictation=game===1&&pos===0,pool=assessmentVocabulary(0,level),word=isDictation?dictationWord(0,level,pos,21):assessmentWord(0,level,pos,game),other=pool[(level*5+pos+7)%pool.length],third=pool[(level*5+pos+13)%pool.length],token=`G-${game}-0-${level}-${pos}`;
+ return hinted(shuffled({token,prompt:isDictation?`${assessmentPhaseLabel(level)} • Level ${level+1} • Mission ${pos+1}: Hear the word. Find it.`:`${assessmentPhaseLabel(level)} • Level ${level+1} • Mission ${pos+1}: Find ${word}.`,options:[word,other,third],answer:0,explanation:`Yes! The word is ${word}.`,audioText:isDictation?word:undefined},salt),gameHint(game,0));
 }
 
 export function quizQuestion(stage:number,set:number,pos:number,salt:number):CurriculumQuestion{
@@ -119,7 +119,7 @@ export function quizQuestion(stage:number,set:number,pos:number,salt:number):Cur
 
 export function gameQuestion(game:number,stage:number,level:number,pos:number,salt:number):CurriculumQuestion{
  if(stage===0)return foundationGameQuestion(game,level,pos,salt);
- const base=curriculumFocusEntry(stage,level,pos,game),word=game===1?dictationWord(stage,level,pos,21):base[0],known=STAGES[stage].words.find(([item])=>item.toLowerCase()===word.toLowerCase()),visual=wordVisual(word),meaning=known?.[1]??visual.meaning,example=known?.[2]??`We use “${word}” in a friendly island story.`,x=curriculumDistractorEntry(stage,level,[word],pos+game+1),y=curriculumDistractorEntry(stage,level,[word,x[0]],pos+game+3),token=`G-${game}-${stage}-${level}-${pos}`;
+ const isDictation=game===1&&pos===0,base=curriculumFocusEntry(stage,level,pos,game),word=isDictation?dictationWord(stage,level,pos,21):base[0],known=STAGES[stage].words.find(([item])=>item.toLowerCase()===word.toLowerCase()),visual=wordVisual(word),meaning=known?.[1]??visual.meaning,example=known?.[2]??`We use “${word}” in a friendly island story.`,x=curriculumDistractorEntry(stage,level,[word],pos+game+1),y=curriculumDistractorEntry(stage,level,[word,x[0]],pos+game+3),token=`G-${game}-${stage}-${level}-${pos}`;
  const miss=word.length>2?word.slice(0,-1):word+"x",first=word[0].toUpperCase();
  const letterChoices=[first,x[0][0].toUpperCase(),y[0][0].toUpperCase(),..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].filter((letter,i,all)=>all.indexOf(letter)===i).slice(0,3);
  const banks:CurriculumQuestion[][]=[
@@ -156,7 +156,7 @@ export function gameQuestion(game:number,stage:number,level:number,pos:number,sa
   ]
  ];
  const selected=banks[game][pos];
- if(game===1)selected.audioText=word;
+ if(isDictation)selected.audioText=word;
  return hinted(shuffled({...selected,prompt:`Path ${stage+1} • Level ${level+1} • Mission ${pos+1}: ${selected.prompt}`},salt),gameHint(game,stage));
 }
 import {assessmentLessonCount,assessmentPhaseLabel,assessmentVocabulary,assessmentWord,dictationWord} from "./vocabulary.ts";

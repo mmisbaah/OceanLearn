@@ -96,15 +96,28 @@ export function assessmentWord(stage:number,level:number,position:number,channel
  return words[(level*11+position*7+channel*13)%words.length];
 }
 
-const DICTATION_WORDS={
- short:["am","an","at","big","boy","bus","can","cat","cup","day","dog","ear","eat","egg","fin","go","hat","hen","hot","leg","log","man","map","mat","net","pen","pig","red","run","sea","sit","sun","top","two","van","yes","you"],
- four:["book","ball","bird","boat","blue","clap","crab","door","fish","gift","good","home","jump","kind","look","moon","name","palm","play","rain","read","reef","sand","shoe","star","tree","wave","wind"],
- six:["beach","chair","child","cloud","colour","dhoni","dress","family","father","flower","friend","garden","happy","house","island","lagoon","listen","mango","mother","ocean","pencil","school","shell","sister","turtle","water","yellow","banana","market"],
- eight:["birthday","careful","captain","children","dolphin","evening","fishing","football","friendly","holiday","hospital","journey","library","morning","rainbow","relative","seashell","sunshine","swimmer","village","weather","weekend","welcome","starfish","sandbank"],
- five:["adventure","beautiful","celebrate","community","discover","festival","friendship","important","islander","memories","ocean","protect","respect","sailing","tradition","visitor","wildlife","wonder","storyteller","lighthouse","sandcastle","fisher","grandmother","grandfather","environment"]
-} as const;
+const G1_EASY_DICTATION=[
+ "am","an","at","big","boy","bus","can","cat","cup","day","dog","ear","eat","egg",
+ "book","ball","bird","boat","blue","clap","crab","door","fish","gift","good","home",
+ "fin","go","hat","hen","hot","leg","log","jump","kind","look","moon","name","palm"
+];
+const ISLAND_FRIENDLY=["sea","sun","reef","sand","fish","palm","crab","boat","dhoni","island","lagoon","shell","wave","rain","beach","mango","coconut","dolphin","turtle","starfish","harbour","fisher","sailing","islander","sandbank"];
+const FRIENDLY_SOURCE=[...ISLAND_FRIENDLY,...WORD_BLOCKS.slice(0,3).flatMap(block=>block.split(/\s+/))];
+const usedDictation=new Set(G1_EASY_DICTATION.map(word=>word.toLowerCase()));
+function takeDictationWords(count:number,maxLength:number){
+ const words=[] as string[];
+ for(const word of FRIENDLY_SOURCE){
+  const key=word.toLowerCase();
+  if(!/^[a-z]+$/i.test(word)||word.length>maxLength||usedDictation.has(key))continue;
+  usedDictation.add(key);words.push(word);
+  if(words.length===count)return words;
+ }
+ throw new Error(`Not enough unique child-friendly dictation words up to ${maxLength} letters`);
+}
+const DICTATION_STAGE_POOLS=[G1_EASY_DICTATION,takeDictationWords(60,6),takeDictationWords(60,6),takeDictationWords(40,8),takeDictationWords(40,8),takeDictationWords(40,99),takeDictationWords(40,99)];
 
 export function dictationWord(stage:number,level:number,position:number,channel=0){
- const pool=stage===0?(level<14?DICTATION_WORDS.short:[...DICTATION_WORDS.short,...DICTATION_WORDS.four]):stage<=2?[...DICTATION_WORDS.short,...DICTATION_WORDS.four,...DICTATION_WORDS.six]:stage<=4?[...DICTATION_WORDS.four,...DICTATION_WORDS.six,...DICTATION_WORDS.eight]:[...DICTATION_WORDS.six,...DICTATION_WORDS.eight,...DICTATION_WORDS.five];
- return pool[(level*11+position*7+channel*17+stage*13)%pool.length];
+ const game=channel===21;
+ const slot=stage===0?(game?26+(level-7):level<14?(level-7)*2+(position===0?0:1):14+(level-14)*2+(position===0?0:1)):stage<=2?(game?40+level:level*2+(position===0?0:1)):(game?20+level:level);
+ return DICTATION_STAGE_POOLS[stage][slot];
 }
