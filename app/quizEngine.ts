@@ -1,4 +1,4 @@
-import {curriculumFocusEntry,quizQuestion as multipleChoiceQuestion,type CurriculumQuestion} from "./curriculum.ts";
+import {curriculumFocusEntry,foundationDictationLetter,quizQuestion as multipleChoiceQuestion,type CurriculumQuestion} from "./curriculum.ts";
 import {assessmentPhaseLabel,assessmentWord} from "./vocabulary.ts";
 import {maldivianQuizPassage} from "./storyEngine.ts";
 
@@ -18,8 +18,8 @@ function wordAt(stage:number,set:number,pos:number){return curriculumFocusEntry(
 export function generateQuizQuestion(stage:number,set:number,pos:number,salt:number,learnerGrade:number):QuizQuestion{
  const type=questionTypePlan(learnerGrade)[pos],[word,meaning,example]=wordAt(stage,set,pos),token=`QE-${stage}-${set}-${pos}`,scope=assessmentPhaseLabel(set);
  if(type==="dictation"){
-  const heard=assessmentWord(stage,set,pos,4);
-  return hinted({type,token,prompt:`${scope} • Level ${set+1}: Listen and type the word.`,audioText:heard,acceptedAnswers:[heard],placeholder:"Type the word",options:[],answer:0,explanation:`The word is “${heard}”.`},`Listen again. The word has ${heard.length} letters and begins with “${heard[0]}”.`);
+  const lettersOnly=stage===0&&set<7,heard=lettersOnly?foundationDictationLetter(set,pos):assessmentWord(stage,set,pos,4);
+  return hinted({type,token,prompt:`${scope} • Level ${set+1}: Listen and type the ${lettersOnly?"letter":"word"}.`,audioText:heard,acceptedAnswers:[heard],placeholder:`Type the ${lettersOnly?"letter":"word"}`,options:[],answer:0,explanation:`The ${lettersOnly?"letter":"word"} is “${heard}”.`},lettersOnly?"Listen again. Type the one letter you hear.":`Listen again. The word has ${heard.length} letters and begins with “${heard[0]}”.`);
  }
  if(type==="fill-blank")return hinted({type,token,prompt:`${scope} • Level ${set+1}: Complete the focus word: ${word.slice(0,-1)}_.`,acceptedAnswers:[word],placeholder:"Type the complete word",options:[],answer:0,explanation:`The completed word is “${word}”.`},`Read the letters from left to right. The word means ${meaning}.`);
  if(type==="reading-comprehension"){

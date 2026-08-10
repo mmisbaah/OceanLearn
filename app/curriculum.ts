@@ -46,6 +46,10 @@ const FOUNDATION_LETTERS=[
 const FOUNDATION_GROUP_ENDS=[5,10,15,20,26];
 
 function foundationLettersForLevel(level:number){const lessons=assessmentLessonCount(0,Math.min(level,6));return FOUNDATION_LETTERS.slice(0,FOUNDATION_GROUP_ENDS[Math.min(4,lessons-1)])}
+export function foundationDictationLetter(level:number,position:number){
+ const letters=foundationLettersForLevel(level);
+ return letters[(level*5+position)%letters.length][0];
+}
 export function curriculumFocusEntry(stage:number,level:number,position:number,channel=0):[string,string,string]{
  const word=assessmentWord(stage,level,position,channel),known=STAGES[stage].words.find(([item])=>item.toLowerCase()===word.toLowerCase());
  if(known)return known;
