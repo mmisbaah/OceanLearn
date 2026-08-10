@@ -28,7 +28,7 @@ const LESSONS: Record<number,string[]> = {
   4:["Fiction Series","Mood & Tone","Reports","Explanations","Narrative Problems","Poetry & Imagery","Text Features","Comparing Texts","Reader’s Theatre","Audience & Language","Charts & Tables","Cause and Effect","Headings & Diagrams","Advanced Connectives","Character Comparison","Term Review"],
   5:["Memoirs","Opinion Writing","Media Texts","Plays","Poetry & Imagery","Reports","Explanations","Narrative Writing","Structured Discussions","Evidence & Inference","Symbolism","Character Motivation","Persuasive Techniques","Figurative Language","Reflective Writing","Term Review"],
 };
-const FIRST_ENGLISH=["Letters A–E","Letters F–J","Letters K–O","Letters P–T","Letters U–Z","Short a CVC Words","Short e CVC Words","Short i CVC Words","Short o CVC Words","Short u CVC Words","Coconut, Reef, Dhoni, Palm, Fish","Lagoon, Sand, Sun, Island, Sea","My First Common Words","Words for People","Words for School","Words for Home","Words for Actions","Words for Feelings","Words for Places","My 100-Word Celebration"];
+const FIRST_ENGLISH=["Letters A–E","Letters F–J","Letters K–O","Letters P–T","Letters U–Z","Short a CVC Words","Short e CVC Words","Short i CVC Words","Short o CVC Words","Short u CVC Words","Reef & Sea","Sand & Boat","My Book","The Crab","My Home","Rain","Read","Reef Review","Boat Review","Sea Review"];
 type PracticeChoice={label:string;picture:string};
 type FoundationActivity={prompt:string;choices:PracticeChoice[];answer:number;success:string};
 type FoundationLesson={tier:1|2|3|4;title:string;outcome:string;focus:string[];story:string[];activities:FoundationActivity[]};

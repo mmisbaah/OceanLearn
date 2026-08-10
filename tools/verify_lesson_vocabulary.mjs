@@ -14,9 +14,9 @@ for(let stage=0;stage<7;stage++){
  assert.equal(stageVocabulary(stage).length,VOCABULARY_TARGETS[stage]);
 }
 const cvcChecks=[
- {lesson:5,vowel:"a",words:["cat","bat","mat"]},{lesson:6,vowel:"e",words:["hen","pen","bed"]},
- {lesson:7,vowel:"i",words:["pig","fin","sit"]},{lesson:8,vowel:"o",words:["dog","log","top"]},
- {lesson:9,vowel:"u",words:["sun","bus","cup"]},
+ {lesson:5,vowel:"a",words:["bat","cap","mat"]},{lesson:6,vowel:"e",words:["bed","hen","pen"]},
+ {lesson:7,vowel:"i",words:["fin","pig","sit"]},{lesson:8,vowel:"o",words:["log","pot","top"]},
+ {lesson:9,vowel:"u",words:["bus","cup","run"]},
 ];
 for(const check of cvcChecks){
  const actual=lessonVocabulary(0,check.lesson,20);
@@ -29,7 +29,7 @@ assert.equal(new Set(Array.from({length:20},(_,lesson)=>lessonVocabulary(0,lesso
 
 // Independent semantic anchors: each lesson must contain a word central to its named topic.
 const topicAnchors=[
- ["apple","fish","key","palm","wave","cat","hen","pig","dog","sun","coconut","lagoon","I","boy","book","home","go","happy","school","you"],
+ ["apple","fish","key","palm","wave","bat","bed","fin","log","bus","reef","sand","book","crab","home","rain","read","reef","boat","sea"],
  ["hello","book","family","wash","cat","red","rice","teacher","rain","shirt","walk","doctor","healthy","cat","favourite","school"],
  ["listen","kind","story","information","first","island","habitat","morning","Eid","lagoon","visited","hero","rhyme","next","sentence","story"],
  ["retell","adjective","greeting","diary","setting","fact","rhyme","summary","main-idea","past","happy","moral","diagram","voice","topic-sentence","paragraph"],

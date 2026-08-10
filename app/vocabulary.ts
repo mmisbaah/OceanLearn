@@ -11,18 +11,24 @@ const WORD_BLOCKS=[
 
 export const MASTER_VOCABULARY=[...new Map(WORD_BLOCKS.flatMap(block=>block.split(/\s+/)).filter(Boolean).map(word=>[word.toLowerCase(),word])).values()];
 export function stageVocabulary(stage:number){
- const current=stage===0?FOUNDATION_LESSON_WORDS.flat():TOPIC_LESSON_WORDS[stage].flat();
+ const current=stage===0?GRADE1_EASY_PHONICS_SCHEMA.targetWords:TOPIC_LESSON_WORDS[stage].flat();
  const earlier=stage<=1?FOUNDATION_LESSON_WORDS.flat():[...FOUNDATION_LESSON_WORDS.flat(),...TOPIC_LESSON_WORDS.slice(1,stage).flat(2)];
  const ordered=stage===0?current:[...current,...earlier,...CURRICULUM_VOCABULARY];
  return [...new Map(ordered.map(word=>[word.toLowerCase(),word])).values()].slice(0,VOCABULARY_TARGETS[stage]);
 }
 
 const FOUNDATION_LESSON_WORDS=[
- ["apple","ball","cat"],["fish","gift","house"],["key","lion","moon"],["palm","queen","rabbit"],["umbrella","van","wave"],
- ["cat","bat","mat"],["hen","pen","bed"],["pig","fin","sit"],["dog","log","top"],["sun","bus","cup"],
- ["coconut","reef","dhoni","palm","fish"],["lagoon","sand","sun","island","sea"],
- ["I","am"],["boy","girl"],["book","pencil"],["home","house"],["go","sit"],["happy","good"],["school","here"],["yes","you"],
+ ["apple","ball","cat","dog","egg"],["fish","gift","house","island","juice"],["key","lion","moon","nest","octopus"],["palm","queen","rabbit","sun","turtle"],["umbrella","van","wave","xray","yoyo","zebra"],
+ ["bat","cap","mat"],["bed","hen","pen"],["fin","pig","sit"],["log","pot","top"],["bus","cup","run"],
+ ["reef","sea"],["sand","boat"],["book"],["crab"],["home"],["rain"],["read"],["reef"],["boat"],["sea"],
 ] as const;
+
+export const GRADE1_EASY_PHONICS_SCHEMA={
+ phase1:{name:"Alphabet Foundations",letters:"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),words:FOUNDATION_LESSON_WORDS.slice(0,5).flat()},
+ phase2:{name:"Short-vowel CVC Words",groups:{a:["bat","cap","mat"],e:["bed","hen","pen"],i:["fin","pig","sit"],o:["log","pot","top"],u:["bus","cup","run"]}},
+ phase3:{name:"Picture Words",words:["reef","sea","sand","boat","book","crab","home","rain","read"]},
+ get targetWords(){return [...this.phase1.words,...Object.values(this.phase2.groups).flat(),...this.phase3.words]},
+} as const;
 
 const TOPIC_LESSON_WORDS:string[][][]=[
  [],
