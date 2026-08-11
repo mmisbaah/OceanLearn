@@ -68,6 +68,8 @@ function firstChoices(set:number){
 }
 
 function foundationQuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
+ return shuffled(level1QuizQuestion(set,pos),salt);
+ /* The explicit 100-item Level 1 repository is authoritative. */
  if(set<7){
   const letters=foundationLettersForLevel(set),target=letters[(set*5+pos)%letters.length],other=letters[(set*5+pos+7)%letters.length],third=letters[(set*5+pos+13)%letters.length],token=`Q-0-${set}-${pos}`;
   const variants:CurriculumQuestion[]=[
@@ -98,12 +100,170 @@ function foundationGameQuestion(game:number,level:number,pos:number,salt:number)
   const optionModes=[[`${target[2]} ${target[1]}`,`${other[2]} ${other[1]}`,`${third[2]} ${third[1]}`],[target[0],other[0],third[0]],[`${target[0]} ${target[1]}`,`${other[0]} ${other[1]}`,`${third[0]} ${third[1]}`],[target[0],other[0],third[0]],[`${target[0]} ${target[2]}`,`${other[0]} ${other[2]}`,`${third[0]} ${third[2]}`]];
   return hinted(shuffled({token,prompt:prompts[game],options:optionModes[game],answer:0,explanation:`${target[0]} is for ${target[1]}.`},salt),`Say ${target[0]} and ${target[1]}. Listen to the first sound.`);
  }
- const isDictation=game===1&&pos===0,pool=assessmentVocabulary(0,level),word=isDictation?dictationWord(0,level,pos,21):assessmentWord(0,level,pos,game),other=pool[(level*5+pos+7)%pool.length],third=pool[(level*5+pos+13)%pool.length],token=`G-${game}-0-${level}-${pos}`;
+ const isDictation=game===1&&pos===0,pool=assessmentVocabulary(0,level),word=isDictation?assessmentWord(0,level,pos,21):assessmentWord(0,level,pos,game),other=pool[(level*5+pos+7)%pool.length],third=pool[(level*5+pos+13)%pool.length],token=`G-${game}-0-${level}-${pos}`;
  return hinted(shuffled({token,prompt:isDictation?`${assessmentPhaseLabel(level)} • Level ${level+1} • Mission ${pos+1}: Hear the word. Find it.`:`${assessmentPhaseLabel(level)} • Level ${level+1} • Mission ${pos+1}: Find ${word}.`,options:[word,other,third],answer:0,explanation:`Yes! The word is ${word}.`,audioText:isDictation?word:undefined},salt),gameHint(game,0));
+}
+
+function level2QuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
+ return shuffled(level2BankQuestion(set,pos),salt);
+ /* The explicit Level 2 bank replaces the former recurring generator. */
+ const [word,,example]=curriculumFocusEntry(1,set,pos),x=curriculumDistractorEntry(1,set,[word],pos+5),y=curriculumDistractorEntry(1,set,[word,x[0]],pos+11),visual=wordVisual(word),token=`Q-1-${set}-${pos}`,options=[word,x[0],y[0]];
+ const variants:CurriculumQuestion[]=[
+  {token,prompt:`Level ${set+1}: Listen. Tap ${word}.`,options,answer:0,explanation:`Yes! ${word}.`},
+  {token,prompt:`Level ${set+1}: Look at ${visual.icon}. Find the word.`,options,answer:0,explanation:`${visual.icon} is ${word}.`},
+  {token,prompt:`Level ${set+1}: Say ${word}. Tap the same word.`,options,answer:0,explanation:`You found ${word}.`},
+  {token,prompt:`Level ${set+1}: Which word belongs with this picture: ${visual.picture}?`,options,answer:0,explanation:`The picture shows ${word}.`},
+  {token,prompt:`Level ${set+1}: Hear this short line: ${example} Tap its focus word.`,options,answer:0,explanation:`The focus word is ${word}.`},
+ ];
+ return hinted(shuffled(variants[pos],salt),"Look at the picture. Say each choice slowly.");
+}
+
+function level2GameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
+ const [word,,example]=curriculumFocusEntry(1,level,pos,game),x=curriculumDistractorEntry(1,level,[word],pos+game+4),y=curriculumDistractorEntry(1,level,[word,x[0]],pos+game+9),visual=wordVisual(word),token=`G-${game}-1-${level}-${pos}`,options=[word,x[0],y[0]];
+ const missions:CurriculumQuestion[]=[
+  {token,prompt:`Picture match ${level+1}.${pos+1}: Tap ${visual.icon} ${word}.`,options,answer:0,explanation:`${visual.icon} matches ${word}.`},
+  {token,prompt:`Sound splash ${level+1}.${pos+1}: Hear the word. Tap it.`,options,answer:0,audioText:word,explanation:`You heard ${word}.`},
+  {token,prompt:`Word race ${level+1}.${pos+1}: Find ${word}.`,options,answer:0,explanation:`${word} wins the race!`},
+  {token,prompt:`First-sound reef ${level+1}.${pos+1}: ${word} starts with ${word[0].toUpperCase()}. Tap ${word}.`,options,answer:0,explanation:`${word} begins with ${word[0].toUpperCase()}.`},
+  {token,prompt:`Sentence helper ${level+1}.${pos+1}: Say “${example}” Tap ${word}.`,options,answer:0,explanation:`${word} completes the guided line.`},
+ ];
+ return hinted(shuffled(missions[game],salt),"Hear the word. Look at all three choices.");
+}
+
+function level3QuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
+ return shuffled(level3BankQuestion(set,pos),salt);
+ const [word,meaning,example]=curriculumFocusEntry(2,set,pos),x=curriculumDistractorEntry(2,set,[word],pos+4),y=curriculumDistractorEntry(2,set,[word,x[0]],pos+9),visual=wordVisual(word),token=`Q-2-${set}-${pos}`;
+ const variants:CurriculumQuestion[]=[
+  {token,prompt:`Level ${set+1}: Which word matches ${visual.icon}?`,options:[word,x[0],y[0]],answer:0,explanation:`${visual.icon} matches ${word}.`},
+  {token,prompt:`Level ${set+1}: Which line uses “${word}” clearly?`,options:[example,`${word} the quickly.`,`And ${word} because.`],answer:0,explanation:`“${example}” is a complete sentence.`},
+  {token,prompt:`Level ${set+1}: What does “${word}” mean?`,options:[meaning,x[1],y[1]],answer:0,explanation:`“${word}” means ${meaning}.`},
+  {token,prompt:`Level ${set+1}: Find the word that belongs with “${meaning}”.`,options:[word,x[0],y[0]],answer:0,explanation:`The matching word is ${word}.`},
+  {token,prompt:`Level ${set+1}: Read the island line. Which word is the focus? ${example}`,options:[word,x[0],y[0]],answer:0,explanation:`The line practises ${word}.`},
+ ];
+ return hinted(shuffled(variants[pos],salt),"Look at the picture or key words. Read all three choices.");
+}
+
+function level3GameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
+ const [word,meaning,example]=curriculumFocusEntry(2,level,pos,game),x=curriculumDistractorEntry(2,level,[word],pos+game+5),y=curriculumDistractorEntry(2,level,[word,x[0]],pos+game+10),visual=wordVisual(word),token=`G-${game}-2-${level}-${pos}`,miss=word.length>2?`${word.slice(0,-1)}_`:`${word}_`;
+ const missions:CurriculumQuestion[]=[
+  {token,prompt:`Picture pearl ${level+1}.${pos+1}: Match ${visual.icon} to its word.`,options:[word,x[0],y[0]],answer:0,explanation:`${visual.icon} is ${word}.`},
+  {token,prompt:`Sound boat ${level+1}.${pos+1}: Listen and catch the word.`,options:[word,x[0],y[0]],answer:0,audioText:word,explanation:`You caught ${word}.`},
+  {token,prompt:`Word-family race ${level+1}.${pos+1}: Complete ${miss}.`,options:[word,x[0],y[0]],answer:0,explanation:`The complete word is ${word}.`},
+  {token,prompt:`Story stepping-stone ${level+1}.${pos+1}: Choose the clear next line.`,options:[example,`${word} and because.`,`Quickly blue the ${word}.`],answer:0,explanation:"The clear sentence keeps the story moving."},
+  {token,prompt:`Sentence rescue ${level+1}.${pos+1}: Find the complete sentence.`,options:[example,`${word} the quickly.`,`Because and ${word}.`],answer:0,explanation:"The rescued sentence has clear word order."},
+ ];
+ return hinted(shuffled(missions[game],salt),"Read or listen twice. Choose the card that makes sense.");
+}
+
+function level4QuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
+ return shuffled(level4BankQuestion(set,pos),salt);
+ const [word,meaning,example]=curriculumFocusEntry(3,set,pos),x=curriculumDistractorEntry(3,set,[word],pos+6),y=curriculumDistractorEntry(3,set,[word,x[0]],pos+12),token=`Q-3-${set}-${pos}`;
+ const variants:CurriculumQuestion[]=[
+  {token,prompt:`Level ${set+1}: What does “${word}” mean in this lesson?`,options:[meaning,x[1],y[1]],answer:0,explanation:`“${word}” means ${meaning}.`},
+  {token,prompt:`Level ${set+1}: Which complete sentence uses “${word}” correctly?`,options:[example,`${word} the quickly blue.`,`Because ${word} and the.`],answer:0,explanation:`“${example}” is complete and meaningful.`},
+  {token,prompt:`Level ${set+1}: Which word matches this clue: ${meaning}?`,options:[word,x[0],y[0]],answer:0,explanation:`The clue matches ${word}.`},
+  {token,prompt:`Level ${set+1}: Which detail best supports the focus “${word}”?`,options:[example,x[2],y[2]],answer:0,explanation:"The correct detail directly demonstrates the focus."},
+  {token,prompt:`Level ${set+1}: Read and choose the accurate word-and-example pair.`,options:[`${word} — ${example}`,`${x[0]} — ${y[2]}`,`${y[0]} — ${x[2]}`],answer:0,explanation:`${word} is accurately paired with its example.`},
+ ];
+ return hinted(shuffled(variants[pos],salt),"Read the key word, then find the choice that matches its meaning or use.");
+}
+
+function level4GameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
+ const base=curriculumFocusEntry(3,level,pos,game),word=game===1&&pos===0?dictationWord(3,level,pos,21):base[0],known=STAGES[3].words.find(([item])=>item.toLowerCase()===word.toLowerCase()),visual=wordVisual(word),meaning=known?.[1]??visual.meaning,example=known?.[2]??`The class uses ${word} in a short island sentence.`,x=curriculumDistractorEntry(3,level,[word],pos+game+6),y=curriculumDistractorEntry(3,level,[word,x[0]],pos+game+12),token=`G-${game}-3-${level}-${pos}`,miss=word.length>2?`${word.slice(0,-1)}_`:`${word}_`;
+ const missions:CurriculumQuestion[]=[
+  {token,prompt:`Clue diver ${level+1}.${pos+1}: Dive for the word meaning “${meaning}”.`,options:[word,x[0],y[0]],answer:0,explanation:`The clue belongs to ${word}.`},
+  {token,prompt:`Spelling sail ${level+1}.${pos+1}: Complete ${miss}.`,options:[word,word+word.slice(-1),x[0]],answer:0,explanation:`The complete spelling is ${word}.`},
+  {token,prompt:`Reading relay ${level+1}.${pos+1}: Find the sentence that uses ${word} well.`,options:[example,`${word} because and.`,`Quickly the ${word} blue.`],answer:0,explanation:"The complete sentence wins the relay."},
+  {token,prompt:`Story-map quest ${level+1}.${pos+1}: Choose the detail that belongs in the story map.`,options:[example,x[2],y[2]],answer:0,explanation:`The detail clearly demonstrates ${word}.`},
+  {token,prompt:`Paragraph reef ${level+1}.${pos+1}: Choose the clearest supporting sentence.`,options:[example,`No detail is needed for ${word}.`,`The words are in a random order ${word}.`],answer:0,explanation:"A supporting sentence must be complete and connected."},
+ ];
+ if(game===1&&pos===0)missions[game].audioText=word;
+ return hinted(shuffled(missions[game],salt),`Use the clue and ${visual.icon} picture idea. Check all three choices.`);
+}
+
+function level5QuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
+ return shuffled(level5BankQuestion(set,pos),salt);
+ const [word,meaning,example]=curriculumFocusEntry(4,set,pos),x=curriculumDistractorEntry(4,set,[word],pos+7),y=curriculumDistractorEntry(4,set,[word,x[0]],pos+14),token=`Q-4-${set}-${pos}`;
+ const variants:CurriculumQuestion[]=[
+  {token,prompt:`Level ${set+1}: Which definition accurately explains “${word}”?`,options:[meaning,x[1],y[1]],answer:0,explanation:`“${word}” means ${meaning}.`},
+  {token,prompt:`Level ${set+1}: Which example demonstrates “${word}”?`,options:[example,x[2],y[2]],answer:0,explanation:`“${example}” demonstrates ${word}.`},
+  {token,prompt:`Level ${set+1}: Which evidence best supports the use of “${word}”?`,options:[`${meaning} — ${example}`,`${x[1]} — ${y[2]}`,`${y[1]} — ${x[2]}`],answer:0,explanation:"The accurate meaning and example provide direct support."},
+  {token,prompt:`Level ${set+1}: Choose the clearest reader explanation of “${word}”.`,options:[`It means ${meaning}, as shown by: ${example}`,`It means every detail is equally important.`,`It cannot be used in an island text.`],answer:0,explanation:"The clear explanation combines meaning with relevant context."},
+  {token,prompt:`Level ${set+1}: Which word belongs with this Grade 4 strategy: ${meaning}?`,options:[word,x[0],y[0]],answer:0,explanation:`The strategy word is ${word}.`},
+ ];
+ return hinted(shuffled(variants[pos],salt),"Identify the strategy, then test each choice against the example or evidence.");
+}
+
+function level5GameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
+ const base=curriculumFocusEntry(4,level,pos,game),word=game===1&&pos===0?dictationWord(4,level,pos,21):base[0],known=STAGES[4].words.find(([item])=>item.toLowerCase()===word.toLowerCase()),visual=wordVisual(word),meaning=known?.[1]??visual.meaning,example=known?.[2]??`The island class uses ${word} in a clear text.`,x=curriculumDistractorEntry(4,level,[word],pos+game+7),y=curriculumDistractorEntry(4,level,[word,x[0]],pos+game+14),token=`G-${game}-4-${level}-${pos}`,miss=word.length>3?`${word.slice(0,-2)}__`:`${word.slice(0,-1)}_`;
+ const missions:CurriculumQuestion[]=[
+  {token,prompt:`Strategy sonar ${level+1}.${pos+1}: Match “${word}” to its purpose.`,options:[meaning,x[1],y[1]],answer:0,explanation:`${word} means ${meaning}.`},
+  {token,prompt:`Spelling current ${level+1}.${pos+1}: Complete ${miss}.`,options:[word,word+word.slice(-1),x[0]],answer:0,explanation:`The exact spelling is ${word}.`,audioText:game===1&&pos===0?word:undefined},
+  {token,prompt:`Evidence expedition ${level+1}.${pos+1}: Select the detail that demonstrates ${word}.`,options:[example,x[2],y[2]],answer:0,explanation:"The selected evidence directly fits the strategy."},
+  {token,prompt:`Text-feature builder ${level+1}.${pos+1}: Choose the card that helps a reader understand ${word}.`,options:[`${word}: ${meaning}`,`${x[0]}: ${y[1]}`,`${y[0]}: ${x[1]}`],answer:0,explanation:"The correct card links the feature to its real purpose."},
+  {token,prompt:`Revision rescue ${level+1}.${pos+1}: Choose the clearest improved sentence.`,options:[example,`${word} the because quickly.`,`No useful detail explains ${word}.`],answer:0,explanation:"The improved sentence is complete, accurate and purposeful."},
+ ];
+ return hinted(shuffled(missions[game],salt),`Use the purpose, evidence and ${visual.icon} visual clue before choosing.`);
+}
+
+function level6QuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
+ return shuffled(level6BankQuestion(set,pos),salt);
+ const [word,meaning,example]=curriculumFocusEntry(5,set,pos),x=curriculumDistractorEntry(5,set,[word],pos+8),y=curriculumDistractorEntry(5,set,[word,x[0]],pos+16),token=`Q-5-${set}-${pos}`;
+ const variants:CurriculumQuestion[]=[
+  {token,prompt:`Level ${set+1}: Which explanation accurately defines “${word}”?`,options:[meaning,x[1],y[1]],answer:0,explanation:`“${word}” means ${meaning}.`},
+  {token,prompt:`Level ${set+1}: Which example provides the clearest use of “${word}”?`,options:[example,x[2],y[2]],answer:0,explanation:`The example directly demonstrates ${word}.`},
+  {token,prompt:`Level ${set+1}: Which evidence-and-explanation pair supports “${word}”?`,options:[`${example} — This shows ${meaning}.`,`${x[2]} — This shows ${y[1]}.`,`${y[2]} — This shows ${x[1]}.`],answer:0,explanation:"The correct pair connects relevant evidence to an accurate explanation."},
+  {token,prompt:`Level ${set+1}: Which interpretation of “${word}” is best justified?`,options:[`It means ${meaning}, supported by: ${example}`,`It has no effect on meaning or audience.`,`It means exactly the same as every other strategy.`],answer:0,explanation:"A justified interpretation includes an accurate meaning and supporting context."},
+  {token,prompt:`Level ${set+1}: Which Grade 5 concept matches this purpose: ${meaning}?`,options:[word,x[0],y[0]],answer:0,explanation:`The matching concept is ${word}.`},
+ ];
+ return hinted(shuffled(variants[pos],salt),"Identify the concept, locate relevant evidence, and test the explanation against the text.");
+}
+
+function level6GameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
+ const base=curriculumFocusEntry(5,level,pos,game),word=game===1&&pos===0?dictationWord(5,level,pos,21):base[0],known=STAGES[5].words.find(([item])=>item.toLowerCase()===word.toLowerCase()),visual=wordVisual(word),meaning=known?.[1]??visual.meaning,example=known?.[2]??`The island class uses ${word} in a purposeful Grade 5 text.`,x=curriculumDistractorEntry(5,level,[word],pos+game+8),y=curriculumDistractorEntry(5,level,[word,x[0]],pos+game+16),token=`G-${game}-5-${level}-${pos}`,miss=word.length>4?`${word.slice(0,-3)}___`:`${word.slice(0,-1)}_`;
+ const missions:CurriculumQuestion[]=[
+  {token,prompt:`Concept current ${level+1}.${pos+1}: Match “${word}” to its accurate meaning.`,options:[meaning,x[1],y[1]],answer:0,explanation:`${word} means ${meaning}.`},
+  {token,prompt:`Wordcraft wave ${level+1}.${pos+1}: Listen and complete ${miss}.`,options:[word,word+word.slice(-1),x[0]],answer:0,explanation:`The exact word is ${word}.`,audioText:game===1&&pos===0?word:undefined},
+  {token,prompt:`Inference island ${level+1}.${pos+1}: Select the evidence that best demonstrates ${word}.`,options:[example,x[2],y[2]],answer:0,explanation:"The selected evidence directly supports the concept."},
+  {token,prompt:`Viewpoint voyage ${level+1}.${pos+1}: Choose the best supported interpretation.`,options:[`${meaning}, shown by ${example}`,`${x[1]}, but no evidence is needed`,`${y[1]}, because every clue is equal`],answer:0,explanation:"The best interpretation combines accuracy with relevant evidence."},
+  {token,prompt:`Revision harbour ${level+1}.${pos+1}: Choose the strongest purposeful revision.`,options:[example,`${word} because the random words quickly.`,`The writer removes every detail about ${word}.`],answer:0,explanation:"The strongest revision is coherent, purposeful and evidence-based."},
+ ];
+ return hinted(shuffled(missions[game],salt),`Use the ${visual.icon} concept clue, then verify the evidence and explanation.`);
+}
+
+function level7QuizQuestion(set:number,pos:number,salt:number):CurriculumQuestion{
+ return shuffled(level7BankQuestion(set,pos),salt);
+ const [word,meaning,example]=curriculumFocusEntry(6,set,pos),x=curriculumDistractorEntry(6,set,[word],pos+9),y=curriculumDistractorEntry(6,set,[word,x[0]],pos+18),token=`Q-6-${set}-${pos}`;
+ const variants:CurriculumQuestion[]=[
+  {token,prompt:`Level ${set+1}: Which precise definition explains “${word}”?`,options:[meaning,x[1],y[1]],answer:0,explanation:`“${word}” means ${meaning}.`},
+  {token,prompt:`Level ${set+1}: Which example most convincingly demonstrates “${word}”?`,options:[example,x[2],y[2]],answer:0,explanation:`The example accurately demonstrates ${word}.`},
+  {token,prompt:`Level ${set+1}: Which evidence-and-reasoning chain supports “${word}”?`,options:[`${example} Therefore, ${meaning}.`,`${x[2]} Therefore, ${y[1]}.`,`${y[2]} Therefore, ${x[1]}.`],answer:0,explanation:"The correct chain links relevant evidence to valid reasoning."},
+  {token,prompt:`Level ${set+1}: Which critical interpretation of “${word}” is best qualified?`,options:[`It can mean ${meaning} in this context, supported by ${example}`,`It always means everything at once, without exception.`,`No context or evidence is needed to interpret it.`],answer:0,explanation:"A strong interpretation is contextual, supported and appropriately qualified."},
+  {token,prompt:`Level ${set+1}: Which extension concept matches this function: ${meaning}?`,options:[word,x[0],y[0]],answer:0,explanation:`The matching extension concept is ${word}.`},
+ ];
+ return hinted(shuffled(variants[pos],salt),"Define the concept precisely, test the evidence, and consider context or limitations.");
+}
+
+function level7GameQuestion(game:number,level:number,pos:number,salt:number):CurriculumQuestion{
+ const base=curriculumFocusEntry(6,level,pos,game),word=game===1&&pos===0?dictationWord(6,level,pos,21):base[0],known=STAGES[6].words.find(([item])=>item.toLowerCase()===word.toLowerCase()),visual=wordVisual(word),meaning=known?.[1]??visual.meaning,example=known?.[2]??`The learner applies ${word} to evidence from an island text.`,x=curriculumDistractorEntry(6,level,[word],pos+game+9),y=curriculumDistractorEntry(6,level,[word,x[0]],pos+game+18),token=`G-${game}-6-${level}-${pos}`,miss=word.length>5?`${word.slice(0,-4)}____`:`${word.slice(0,-1)}_`;
+ const missions:CurriculumQuestion[]=[
+  {token,prompt:`Concept compass ${level+1}.${pos+1}: Navigate to the precise meaning of “${word}”.`,options:[meaning,x[1],y[1]],answer:0,explanation:`${word} means ${meaning}.`},
+  {token,prompt:`Lexicon lighthouse ${level+1}.${pos+1}: Listen and complete ${miss}.`,options:[word,word+word.slice(-1),x[0]],answer:0,explanation:`The exact word is ${word}.`,audioText:game===1&&pos===0?word:undefined},
+  {token,prompt:`Source triangulation ${level+1}.${pos+1}: Choose the strongest evidence for ${word}.`,options:[example,x[2],y[2]],answer:0,explanation:"The strongest evidence is relevant and directly connected to the concept."},
+  {token,prompt:`Perspective passage ${level+1}.${pos+1}: Choose the most nuanced interpretation.`,options:[`${meaning}, supported in this context by ${example}`,`${x[1]}, true in every possible context`,`${y[1]}, requiring no evidence`],answer:0,explanation:"The nuanced interpretation is contextual, supported and carefully limited."},
+  {token,prompt:`Critical response reef ${level+1}.${pos+1}: Select the strongest formal revision.`,options:[example,`${word} is obvious, so evidence is unnecessary.`,`Random details prove every claim about ${word}.`],answer:0,explanation:"The strongest revision is precise, formal and evidence-based."},
+ ];
+ return hinted(shuffled(missions[game],salt),`Use the ${visual.icon} concept clue, evaluate support, and reject absolute or unsupported claims.`);
 }
 
 export function quizQuestion(stage:number,set:number,pos:number,salt:number):CurriculumQuestion{
  if(stage===0)return foundationQuizQuestion(set,pos,salt);
+ if(stage===1)return level2QuizQuestion(set,pos,salt);
+ if(stage===2)return level3QuizQuestion(set,pos,salt);
+ if(stage===3)return level4QuizQuestion(set,pos,salt);
+ if(stage===4)return level5QuizQuestion(set,pos,salt);
+ if(stage===5)return level6QuizQuestion(set,pos,salt);
+ if(stage===6)return level7QuizQuestion(set,pos,salt);
  const [word,meaning,example]=curriculumFocusEntry(stage,set,pos),a=curriculumDistractorEntry(stage,set,[word],pos+1),b=curriculumDistractorEntry(stage,set,[word,a[0]],pos+3);
  const band=`Path ${stage+1} • ${assessmentPhaseLabel(set)}`;
  const token=`Q-${stage}-${set}-${pos}`;
@@ -119,6 +279,12 @@ export function quizQuestion(stage:number,set:number,pos:number,salt:number):Cur
 
 export function gameQuestion(game:number,stage:number,level:number,pos:number,salt:number):CurriculumQuestion{
  if(stage===0)return foundationGameQuestion(game,level,pos,salt);
+ if(stage===1)return level2GameQuestion(game,level,pos,salt);
+ if(stage===2)return level3GameQuestion(game,level,pos,salt);
+ if(stage===3)return level4GameQuestion(game,level,pos,salt);
+ if(stage===4)return level5GameQuestion(game,level,pos,salt);
+ if(stage===5)return level6GameQuestion(game,level,pos,salt);
+ if(stage===6)return level7GameQuestion(game,level,pos,salt);
  const isDictation=game===1&&pos===0,base=curriculumFocusEntry(stage,level,pos,game),word=isDictation?dictationWord(stage,level,pos,21):base[0],known=STAGES[stage].words.find(([item])=>item.toLowerCase()===word.toLowerCase()),visual=wordVisual(word),meaning=known?.[1]??visual.meaning,example=known?.[2]??`We use “${word}” in a friendly island story.`,x=curriculumDistractorEntry(stage,level,[word],pos+game+1),y=curriculumDistractorEntry(stage,level,[word,x[0]],pos+game+3),token=`G-${game}-${stage}-${level}-${pos}`;
  const miss=word.length>2?word.slice(0,-1):word+"x",first=word[0].toUpperCase();
  const letterChoices=[first,x[0][0].toUpperCase(),y[0][0].toUpperCase(),..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].filter((letter,i,all)=>all.indexOf(letter)===i).slice(0,3);
@@ -161,3 +327,10 @@ export function gameQuestion(game:number,stage:number,level:number,pos:number,sa
 }
 import {assessmentLessonCount,assessmentPhaseLabel,assessmentVocabulary,assessmentWord,dictationWord} from "./vocabulary.ts";
 import {wordVisual} from "./wordVisuals.ts";
+import {level1QuizQuestion} from "./level1QuizBank.ts";
+import {level2QuizQuestion as level2BankQuestion} from "./level2QuizBank.ts";
+import {level3QuizQuestion as level3BankQuestion} from "./level3QuizBank.ts";
+import {level4QuizQuestion as level4BankQuestion} from "./level4QuizBank.ts";
+import {level5QuizQuestion as level5BankQuestion} from "./level5QuizBank.ts";
+import {level6QuizQuestion as level6BankQuestion} from "./level6QuizBank.ts";
+import {level7QuizQuestion as level7BankQuestion} from "./level7QuizBank.ts";

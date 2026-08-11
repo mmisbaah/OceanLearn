@@ -19,30 +19,30 @@ export function stageVocabulary(stage:number){
 
 const FOUNDATION_LESSON_WORDS=[
  ["apple","ball","cat","dog","egg"],["fish","gift","house","island","juice"],["key","lion","moon","nest","octopus"],["palm","queen","rabbit","sun","turtle"],["umbrella","van","wave","xray","yoyo","zebra"],
- ["bat","cap","mat"],["bed","hen","pen"],["fin","pig","sit"],["log","pot","top"],["bus","cup","run"],
- ["reef","sea"],["sand","boat"],["book"],["crab"],["home"],["rain"],["read"],["reef"],["boat"],["sea"],
+ ["hello","goodbye"],["yes","no"],["I","you","name"],["please","thank","help"],["happy","sad"],
+ ["sit","stand"],["clap","jump"],["book","pencil"],["bag","home"],["water"],["family"],["mum","dad"],["hello","please"],["happy","sad"],["sit","clap"],
 ] as const;
 
 export const GRADE1_EASY_PHONICS_SCHEMA={
  phase1:{name:"Alphabet Foundations",letters:"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),words:FOUNDATION_LESSON_WORDS.slice(0,5).flat()},
- phase2:{name:"Short-vowel CVC Words",groups:{a:["bat","cap","mat"],e:["bed","hen","pen"],i:["fin","pig","sit"],o:["log","pot","top"],u:["bus","cup","run"]}},
- phase3:{name:"Picture Words",words:["reef","sea","sand","boat","book","crab","home","rain","read"]},
+ phase2:{name:"Oral Language & Social Words",groups:{greetings:["hello","goodbye"],responses:["yes","no"],self:["I","you","name"],polite:["please","thank","help"],feelings:["happy","sad"]}},
+ phase3:{name:"Listen, Look & Move",words:["sit","stand","clap","jump","book","pencil","bag","home","water","family","mum","dad"]},
  get targetWords(){return [...this.phase1.words,...Object.values(this.phase2.groups).flat(),...this.phase3.words]},
 } as const;
 
 const TOPIC_LESSON_WORDS:string[][][]=[
  [],
  [
-  ["hello","name","listen","speak","English"],["book","pencil","chair","table","teacher"],["mother","father","sister","brother","family"],["wake","wash","eat","school","sleep"],
-  ["cat","dog","bird","fish","turtle"],["red","blue","green","circle","square"],["rice","fish","mango","banana","water"],["class","teacher","friend","read","write"],
-  ["sun","rain","cloud","wind","hot"],["shirt","dress","hat","shoes","uniform"],["walk","bicycle","bus","boat","dhoni"],["doctor","nurse","teacher","police","farmer"],
-  ["clean","healthy","wash","water","sleep"],["cat","meow","dog","bark","bird"],["favourite","game","colour","food","animal"],["hello","family","school","food","weather"],
+  ["hello","name","I","am","friend"],["book","pencil","bag","chair","teacher"],["happy","sad","good","fine","tired"],["cat","bat","mat","cap","map"],
+  ["hen","pen","bed","red","ten"],["pig","fin","sit","pin","lip"],["dog","log","pot","top","hop"],["sun","bus","cup","run","fun"],
+  ["a","the","is","in","on"],["I","you","my","we","can"],["apple","egg","island","octopus","umbrella"],["in","on","under","box","chair"],
+  ["capital","full-stop","sentence","start","end"],["first","then","picture","story","retell"],["draw","label","island","palm","sea"],["read","say","listen","look","check"],
  ],
  [
-  ["listen","please","thank","question","answer"],["tall","short","kind","happy","curly"],["story","title","character","beginning","ending"],["fact","heading","picture","label","information"],
-  ["first","next","then","finally","instruction"],["island","beach","harbour","market","school"],["habitat","reef","ocean","nest","forest"],["morning","lunch","evening","home","bedtime"],
-  ["Eid","family","food","clothes","celebrate"],["lagoon","garden","beach","library","playground"],["yesterday","visited","played","saw","returned"],["hero","friend","problem","action","change"],
-  ["rhyme","line","sound","beat","poem"],["first","before","after","next","last"],["topic","sentence","detail","capital","full-stop"],["story","procedure","habitat","sequence","paragraph"],
+  ["listen","please","thank","question","answer"],["open","draw","colour","close","show"],["cat","hat","mat","fan","map"],["pig","fin","sit","lip","pin"],
+  ["dog","log","hop","top","pot"],["boat","goat","rain","seed","moon"],["family","friend","teacher","neighbour","fisher"],["morning","breakfast","school","lunch","evening"],
+  ["story","picture","crab","hat","laugh"],["beginning","middle","ending","first","last"],["yesterday","visited","played","saw","returned"],["one","many","fish","shells","boats"],
+  ["who","what","where","when","because"],["because","smile","help","kind","happy"],["before","after","first","next","last"],["read","write","speak","check","share"],
  ],
  [
   ["retell","character","setting","problem","ending"],["adjective","colour","shape","size","texture"],["address","greeting","message","closing","signature"],["date","diary","event","feeling","reflection"],
@@ -120,10 +120,10 @@ function takeDictationWords(count:number,maxLength:number){
  }
  throw new Error(`Not enough unique child-friendly dictation words up to ${maxLength} letters`);
 }
-const DICTATION_STAGE_POOLS=[G1_EASY_DICTATION,takeDictationWords(60,6),takeDictationWords(60,6),takeDictationWords(40,8),takeDictationWords(40,8),takeDictationWords(40,99),takeDictationWords(40,99)];
+const DICTATION_STAGE_POOLS=[G1_EASY_DICTATION,takeDictationWords(60,6),takeDictationWords(60,6),takeDictationWords(60,8),takeDictationWords(60,8),takeDictationWords(60,99),takeDictationWords(60,99)];
 
 export function dictationWord(stage:number,level:number,position:number,channel=0){
  const game=channel===21;
- const slot=stage===0?(game?26+(level-7):level<14?(level-7)*2+(position===0?0:1):14+(level-14)*2+(position===0?0:1)):stage<=2?(game?40+level:level*2+(position===0?0:1)):(game?20+level:level);
+ const slot=stage===0?(game?26+(level-7):level<14?(level-7)*2+(position===0?0:1):14+(level-14)*2+(position===0?0:1)):stage>=1?(game?40+level:level*2+(position===0?0:1)):0;
  return DICTATION_STAGE_POOLS[stage][slot];
 }

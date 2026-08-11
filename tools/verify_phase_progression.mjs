@@ -30,7 +30,8 @@ for(let level=0;level<7;level++)for(let pos=0;pos<5;pos++){
  const quiz=generateQuizQuestion(0,level,pos,71,1),game=gameQuestion(pos%5,0,level,pos,93);
  if(quiz.type==="dictation"){
   assert.match(quiz.audioText??"",/^[A-Z]$/,`Grade 1 Easy quiz level ${level+1} dictation is not a single letter`);
-  assert.match(quiz.prompt,/type the letter/i,`Grade 1 Easy quiz level ${level+1} dictation does not instruct the learner to type a letter`);
+  assert.match(quiz.prompt,/listen.*tap the letter/i,`Grade 1 Easy quiz level ${level+1} dictation is not oral tap-to-select`);
+  assert.equal(quiz.options.length,3,`Grade 1 Easy quiz level ${level+1} requires typing`);
  }else{
   assert.match(quiz.prompt,/letter|uppercase|choose/i,`Grade 1 Easy quiz level ${level+1} is not alphabet focused`);
   assert.ok(quiz.options.every(option=>/^[A-Z]$/.test(option)),`Grade 1 Easy quiz level ${level+1} includes a non-letter option`);
@@ -39,6 +40,6 @@ for(let level=0;level<7;level++)for(let pos=0;pos<5;pos++){
 }
 for(let level=7;level<20;level++)for(let pos=0;pos<5;pos++){
  const quiz=generateQuizQuestion(0,level,pos,71,1);
- if(quiz.type==="dictation")assert.ok((quiz.audioText??"").length>1,`Grade 1 Easy quiz level ${level+1} dictation must use a word`);
+ if(quiz.type==="dictation"){assert.ok((quiz.audioText??"").length>1,`Grade 1 Easy quiz level ${level+1} dictation must use a spoken word`);assert.equal(quiz.options.length,3,"Level 1 dictation must remain tap-to-select");}
 }
 console.log(JSON.stringify({stages:7,quizQuestions:quizSignatures.size,gameMissions:gameSignatures.size,phaseBands:{phase1:"levels 1-7",phase2:"levels 8-14",phase3:"levels 15-20"},level20:"complete curriculum",grade1Easy:"alphabet and initial-object sounds in levels 1-7"},null,2));

@@ -1,0 +1,33 @@
+import type {CurriculumQuestion} from "./curriculum.ts";
+const DATA=[
+ ["Discussion notes","notes","key ideas written briefly","During an island council visit, Shifa records only the speaker’s main points about clean water, safe jetties and recycling. She leaves out greetings and repeated examples, then uses her brief notes to report accurately to class."],
+ ["Values in stories","values","beliefs that guide choices","A story shows Hassan returning a wallet he finds near the ferry terminal. Although nobody saw him find it, he asks an adult to locate the owner. His choice reveals honesty and responsibility."],
+ ["Big-idea summaries","summary","a short account of the most important ideas","The reef club studies weekly observations about coral, litter and young fish. Instead of copying every entry, Aminath groups the evidence and writes two sentences explaining the overall improvement."],
+ ["Evidence in reading","evidence","details supporting an idea","Grey clouds gather, shopkeepers cover their goods and dhoni crews tighten ropes. These connected details support the reader’s conclusion that rough weather is approaching the island harbour."],
+ ["Graphic organizers","organizer","a visual arrangement of connected information","Before writing about mangroves, Ali creates a web with branches for habitat, roots, animals and protection. The organizer helps him group related facts and notice where more information is needed."],
+ ["Page design","layout","the arrangement of words and images on a page","Mariyam designs a digital reef poster with one clear title, short text blocks and labelled photographs. She leaves open space between sections so young readers can follow the information comfortably."],
+ ["Narrative dialogue","dialogue","spoken words exchanged by characters","In the storm story, two siblings disagree about moving the model boats. Their dialogue reveals worry, suggests a safe plan and moves the action toward a sensible decision."],
+ ["Character motivation","motive","the reason behind a character’s action","Nihan wakes early to help his grandfather mend a net because he promised to learn the skill. The promise and his respect explain why he gives up extra sleep."],
+ ["Personal recounts","reflection","a thought about what an experience taught","After helping at a beach clean-up, Fathimath describes the work in time order. Her ending reflects that small actions become powerful when neighbours cooperate."],
+ ["Information writing","accuracy","being correct and dependable","A pupil checks fish names, measurements and captions before sharing an island wildlife page. Accurate details help readers trust and understand the information."],
+ ["Persuasive reasons","support","facts and examples strengthening an opinion","The class asks for shaded bicycle parking. They explain that shade protects seats from heat and include a count of pupils who cycle. Relevant support makes the request convincing."],
+ ["Audience awareness","purpose","the result a writer wants a text to achieve","A safety notice uses direct instructions for swimmers, while a family newsletter gives explanations and dates. Each writer chooses language to suit the audience and purpose."],
+ ["Compound sentences","conjunction","a joining word linking ideas","The tide was low, so the class crossed the reef flat with a guide. The conjunction connects the condition to the action in one clear compound sentence."],
+ ["Precise vocabulary","precision","using exact words for clear meaning","Instead of writing that the bird went quickly, Hassan writes that the heron swooped toward the lagoon. The precise verb gives readers a sharper image."],
+ ["Thesaurus choices","synonym","a word with a similar meaning","A thesaurus offers several alternatives for happy, but the writer chooses relieved because the lost turtle is finally safe. Context decides which synonym is most accurate."],
+ ["Process explanations","sequence","the ordered stages of a process","An explanation of coir rope begins with soaking husks, continues with separating fibres and ends with twisting strands. Time connectives keep the sequence easy to follow."],
+ ["Comparing viewpoints","viewpoint","a person’s position or way of seeing an issue","Fishers value the lagoon as a workplace, while pupils describe it as a place to study wildlife. Comparing viewpoints shows how one place can matter in different ways."],
+ ["Revision choices","revision","changes that improve meaning and clarity","During revision, Sara moves an unclear sentence, replaces repeated words and adds a missing reason. She reads the paragraph aloud to check that each idea connects smoothly."],
+ ["Media messages","message","the central idea communicated to an audience","A short island video pairs images of reusable bottles with the words Keep Plastic from Our Sea. Music and pictures reinforce the environmental message without needing a long explanation."],
+ ["Integrated review","judgement","a reasoned decision based on information","The class compares a chart, a written report and photographs from its garden project. After checking the matching details, pupils make a careful judgement about which changes helped plants grow."],
+] as const;
+const meaning=(i:number)=>DATA[i][2];
+export const LEVEL6_QUIZ_SETS=DATA.map((d,i)=>[
+ {prompt:`Study the ${d[0].toLowerCase()} passage. Which concept organizes its central idea?`,passage:d[3],options:[d[1],DATA[(i+4)%20][1],DATA[(i+9)%20][1]],answer:0,explanation:`The passage demonstrates ${d[1]}.`},
+ {prompt:`Listen for the ordinary English focus word from ${d[0].toLowerCase()}.`,options:[d[1],DATA[(i+5)%20][1],DATA[(i+11)%20][1]],answer:0,explanation:`You heard ${d[1]}.`},
+ {prompt:`Complete this curriculum definition: ${d[1]} means ___.`,options:[d[2],meaning((i+6)%20),meaning((i+12)%20)],answer:0,explanation:`${d[1]} means ${d[2]}.`},
+ {prompt:`Which conclusion is best supported by the ${d[0].toLowerCase()} example?`,passage:d[3],options:[`The example applies ${d[1]} effectively.`,`The example avoids ${d[1]} completely.`,`The example is unrelated to English learning.`],answer:0,explanation:`Its details directly apply ${d[1]}.`},
+ {prompt:`Select the accurate word-and-meaning pair for ${d[0].toLowerCase()}.`,options:[`${d[1]} — ${d[2]}`,`${DATA[(i+2)%20][1]} — ${d[2]}`,`${d[1]} — ${meaning((i+7)%20)}`],answer:0,explanation:`The first pair is accurate.`},
+]);
+export const LEVEL6_DICTATION_WORDS=DATA.map(d=>d[1]);
+export function level6QuizQuestion(set:number,pos:number):CurriculumQuestion&{passage?:string}{const item=LEVEL6_QUIZ_SETS[set]?.[pos];if(!item)throw new Error(`Missing Level 6 item ${set+1}.${pos+1}`);return {...item,token:`L6-${set}-${pos}`}}
