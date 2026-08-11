@@ -20,7 +20,7 @@ export const questionTypePlan=(grade:number)=>PLANS[Math.min(3,Math.max(1,grade)
 const hinted=(question:QuizQuestion,hint:string):QuizQuestion=>({...question,prompt:`${question.prompt}\n💡 Hint: ${hint}`});
 
 function wordAt(stage:number,set:number,pos:number){return curriculumFocusEntry(stage,set,pos)}
-export function generateQuizQuestion(stage:number,set:number,pos:number,salt:number,learnerGrade:number):QuizQuestion{
+function generateQuizQuestionBase(stage:number,set:number,pos:number,salt:number,learnerGrade:number):QuizQuestion{
  const type=questionTypePlan(learnerGrade)[pos];
  if(stage===0){
   const base=multipleChoiceQuestion(0,set,pos,salt),heard=base.audioText??base.options[base.answer];
@@ -96,5 +96,17 @@ export function generateQuizQuestion(stage:number,set:number,pos:number,salt:num
   const options=[...wrong];options.splice(answer,0,word);return hinted({...base,options,answer},"Look for the sentence that explains the class activity. It names the English focus.");
  }
  return {...multipleChoiceQuestion(stage,set,pos,salt),type:"multiple-choice"};
+}
+
+function questionHint(question:QuizQuestion,stage:number){
+ if(question.type==="dictation")return "Play the word again. Say each sound slowly before you answer.";
+ if(question.type==="fill-blank")return "Read the whole line. Use the letters and meaning around the blank.";
+ if(question.type==="reading-comprehension")return "Look back at the passage. Find the sentence or detail that proves your choice.";
+ return stage<2?"Look carefully and say every choice before you tap.":"Find the key word, then compare all three choices.";
+}
+
+export function generateQuizQuestion(stage:number,set:number,pos:number,salt:number,learnerGrade:number):QuizQuestion{
+ const question=generateQuizQuestionBase(stage,set,pos,salt,learnerGrade);
+ return question.prompt.includes("\n💡 Hint: ")?question:hinted(question,questionHint(question,stage));
 }
 export function generateQuizSet(stage:number,set:number,salt:number,learnerGrade:number):QuizSet{return {id:`quiz-${stage}-${set}`,grade:learnerGrade,stage,questions:Array.from({length:5},(_,pos)=>generateQuizQuestion(stage,set,pos,salt,learnerGrade))}}
