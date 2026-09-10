@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   applicationName: "OceanLearn",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "OceanLearn" },
-  icons: { icon: "/assets/app-icon-192.jpg", apple: "/assets/apple-touch-icon.jpg" },
+  icons: { icon: [{url:'/browser-icon-v2.png',type:'image/png'}], shortcut:'/browser-icon-v2.png', apple:'/browser-icon-v2.png' },
 };
 
 export const viewport: Viewport = {
