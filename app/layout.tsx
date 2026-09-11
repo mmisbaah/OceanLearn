@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body><nav className="atollingo-return" aria-label="Learning hub"><a href="https://atollingo.com/"><span className="atollingo-return-icon" aria-hidden="true">🏝️</span><span>Back to Atollingo</span><span aria-hidden="true">↗</span></a></nav><AppHubConnector app="OceanLearn">{children}</AppHubConnector></body>
+      <body><div role="navigation" className="atollingo-return" aria-label="Learning hub"><a href="https://atollingo.com/"><span className="atollingo-return-icon" aria-hidden="true">🏝️</span><span>Back to Atollingo</span><span aria-hidden="true">↗</span></a></div><AppHubConnector app="OceanLearn">{children}</AppHubConnector></body>
     </html>
   );
 }
