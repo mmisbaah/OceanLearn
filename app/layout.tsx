@@ -1,3 +1,4 @@
+import "./atollingo-return.css";
 import AppHubConnector from '../atollingo/components/AppHubConnector';
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
@@ -24,7 +25,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body><AppHubConnector app="OceanLearn">{children}</AppHubConnector></body>
+      <body><nav className="atollingo-return" aria-label="Learning hub"><a href="https://atollingo.com/"><span className="atollingo-return-icon" aria-hidden="true">🏝️</span><span>Back to Atollingo</span><span aria-hidden="true">↗</span></a></nav><AppHubConnector app="OceanLearn">{children}</AppHubConnector></body>
     </html>
   );
 }
